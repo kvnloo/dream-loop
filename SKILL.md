@@ -39,6 +39,10 @@ When generating images, avoid using words like "concept art" in the prompt. This
 
 Store the image in `.dream-loop/target.png`.
 
+## Optional: tiled mesh maps
+
+For **one object** that needs fabric, hair, pores, or other microtexture, after camera/crop is locked, use [references/tiled-mesh.md](references/tiled-mesh.md) and `scripts/tile_grid.py`. Do not tile a full scene still or replace `target.png`.
+
 ## Time budget
 
 If the user gives a time budget, record the time at start of the loop (after locking target.png), and check the clock between rounds.
