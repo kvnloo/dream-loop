@@ -37,6 +37,10 @@ GPT-6 Astra on high effort in Codex:
 
 [Try the live demo](https://dream-loop-demo.anshu.dev)
 
+## Classic workflow
+
+The [pre-simplify gated judge + asset-first loop](references/classic/README.md) lives under `references/classic/` (restored from upstream git history). Use it when you want stricter iteration than the default Plus/Pro split. Say **Dream Loop Classic** in your prompt.
+
 ## Contributing
 
 I'd love to hear feedback, see results, and accept edits to the skill.

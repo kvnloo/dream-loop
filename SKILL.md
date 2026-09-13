@@ -18,6 +18,8 @@ Pro workflow: read [references/pro-mode/workflow.md](references/pro-mode/workflo
 
 Do not read both documents. They are not inter-compatible.
 
+**Classic workflow (optional):** If the user asks for **Dream Loop Classic**, the **gated judge**, or **asset-first** iteration, read [references/classic/README.md](references/classic/README.md) and follow that read order instead of Plus/Pro above. Classic and Plus/Pro must not be mixed in one run.
+
 # Guidance applicable to both workflows
 
 ## General
