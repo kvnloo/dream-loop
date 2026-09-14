@@ -38,9 +38,9 @@ The judge should be given the latest live screenshot, the target image, the prev
 >
 > If a previous verdict and screenshot are provided, maintain consistency with prior judgment, but do not feel obligated to match or increase score. If the product regressed, it should score worse.
 
-## Multi-lane
+## Same skill, different products
 
-If more than one subject uses this skill on the same machine, follow [../lanes.md](../lanes.md). Overlay before judging lighting. One change class per round.
+Unrelated products may reuse this workflow. Follow [../lanes.md](../lanes.md). Do not mix their stills. Overlay before judging lighting. One change class per round.
 
 ## Exit criteria
 

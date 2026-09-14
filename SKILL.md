@@ -39,9 +39,9 @@ When generating images, avoid using words like "concept art" in the prompt. This
 
 Store the image in `.dream-loop/target.png`.
 
-## Multiple products / lanes
+## Same skill, different products
 
-If more than one scene uses this skill (facility still, house photo, plant close-up), read [references/lanes.md](references/lanes.md). Coordinate skills here. Do not fork a second loop in a product repo.
+This skill is reused by unrelated products (facility still, house photo, plant close-up). Read [references/lanes.md](references/lanes.md). Do not treat those products as one project. Do not invent a second loop.
 
 Overlay: `python scripts/overlay.py .dream-loop/target.png capture.png .dream-loop/overlays`
 
