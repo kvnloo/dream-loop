@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kvnloo/dream-loop/references/assets.schema.json",
+  "title": "dream-loop assets.json",
+  "type": "object",
+  "required": ["assets"],
+  "properties": {
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "role", "source", "paths", "status"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "role": { "type": "string", "minLength": 1 },
+          "source": { "type": "string", "minLength": 1 },
+          "falJobId": { "type": "string" },
+          "paths": {
+            "type": "object",
+            "additionalProperties": { "type": ["string", "array", "null"] }
+          },
+          "status": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

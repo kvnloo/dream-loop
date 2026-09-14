@@ -26,8 +26,8 @@ Full router text from the old monolithic skill: [SKILL-full.md](SKILL-full.md) (
 | Classic | Current (simplified) |
 |--------|----------------------|
 | Gated tiers + directive ledger | Pro additive 0–3+0–3+0–3+0–1 |
-| Asset-first, `assets.json` required | Assets doc only; no schema |
-| Plus: judge + quota + enablement gate | Plus: 3 unguided workers, no judge |
-| `concept.png` naming | `target.png` naming |
+| Asset-first, `assets.json` required | `.dream-loop/assets.json` required before compose ([assets.schema.json](../assets.schema.json)) |
+| Plus: judge + quota + enablement gate | Plus: 3 workers + cheap JSON critic; 3-round / 5h / 20% weekly caps |
+| `concept.png` naming | `target.png` + `target.json` naming |
 
 Upstream history: `9161a01` (classic) → `9bddb90` (simplify).

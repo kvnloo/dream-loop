@@ -8,6 +8,8 @@ license: MIT
 
 This is a process for you to autonomously build extremely impressive visuals, especially for 3D scenes (e.g. in a game or app).
 
+If this is the first run, or you do not have image generation, read [references/onboarding.md](references/onboarding.md) before continuing.
+
 Your first step is to determine which workflow to use:
 - If the user told you to use the Plus or Pro workflow explicitly, that's your answer
 - If not, check if the user is on a low or high tier coding subscription. "Low tier" means ChatGPT Plus or equivalent. "High tier" means ChatGPT Pro. For low-tier subscriptions, use the Plus workflow. For high-tier, use the Pro workflow.
@@ -16,7 +18,9 @@ Plus workflow: read [references/plus-mode/workflow.md](references/plus-mode/work
 
 Pro workflow: read [references/pro-mode/workflow.md](references/pro-mode/workflow.md)
 
-Do not read both documents. They are not inter-compatible.
+After that choice, also read [references/common.md](references/common.md). That is the one shared document both workflows may load.
+
+Do not read both Plus and Pro workflow documents. They are not inter-compatible.
 
 **Classic workflow (optional):** If the user asks for **Dream Loop Classic**, the **gated judge**, or **asset-first** iteration, read [references/classic/README.md](references/classic/README.md) and follow that read order instead of Plus/Pro above. Classic and Plus/Pro must not be mixed in one run.
 
@@ -26,6 +30,10 @@ Do not read both documents. They are not inter-compatible.
 
 Create and use a `.dream-loop` folder for working context/files, and gitignore it.
 
+Record 3D assets in `.dream-loop/assets.json` (see [references/assets.schema.json](references/assets.schema.json)) before composing the scene.
+
+If the browser tool cannot save a PNG, run [scripts/preview-server.py](scripts/preview-server.py) (`POST /__capture`; side-by-side at `/__compare`). Captures land in `.dream-loop/captures/`.
+
 ## The target image
 
 The key piece of Dream Loop is to first create the "dream version" of the user request using image generation, then iterate to build it.
@@ -33,13 +41,15 @@ The key piece of Dream Loop is to first create the "dream version" of the user r
 If the user supplies this, use that directly.
 If not, you need to generate it.
 
-If you don't have an image generation tool, stop and ask the user to either provide the target image, or connect you to an image generation API.
+If you don't have an image generation tool, stop and ask the user to either provide the target image, or connect you to an image generation API. See [references/onboarding.md](references/onboarding.md).
 
 Before generating the image, determine if there is an existing product or if you're starting fresh. If fresh, you can directly generate a new image. If there's an existing product, you should capture a screenshot of the current version of it, then use that as the baseline input to the image model and generate a refined version of it based on the user direction, so that it is an improvement over the original and not a divergence.
 
 When generating images, avoid using words like "concept art" in the prompt. This is not an artist's interpretation. It is meant to be an exact, realistic target screenshot. You will try to match it down to the pixel. For example, if the user is asking you to make a game, you should prompt the image model for a real in-engine screenshot of the target. Not a cinematic shot, photo, painting, artist concept, etc.
 
-Store the image in `.dream-loop/target.png`.
+Watch for **overbaked** (noisy photographic clutter) and **oversimplified** (toy/flat) targets; see [references/classic/concept.md](references/classic/concept.md). Confirm a generated target with the user once unless they said "just go".
+
+Store the image in `.dream-loop/target.png`. After generating it, write `.dream-loop/target.json` `{width,height,prompt,source}` when those are knowable. Optional `vertical`: `realtime-game` | `product-viz` | `ad-still` (see [references/target.schema.json](references/target.schema.json)).
 
 ## Time budget
 
@@ -49,3 +59,6 @@ Don't degrade visual fidelity to hit the time budget. Don't take shortcuts. It's
 
 If the user doesn't give a time budget, run until you hit an exit criterion, but warn that this may consume a lot of tokens.
 
+## Spend caps
+
+Warn before a long Fal or token run. Optional `.dream-loop/budget.json`: `{ "maxFalUsd": <number>, "maxRounds": <number> }`. There is no live spend meter; honor the file if present. `node scripts/fal-batch.mjs check .dream-loop/fal-jobs.json` prints the Fal job count. ChatGPT Plus: wrap up near **5h** or **20% of weekly** quota (see the Plus workflow).

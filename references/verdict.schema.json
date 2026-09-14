@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kvnloo/dream-loop/references/verdict.schema.json",
+  "title": "dream-loop round verdict",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["score", "total", "blockers", "fps_ok"],
+      "properties": {
+        "score": {
+          "type": "object",
+          "required": ["composition", "lighting", "materials", "details"],
+          "properties": {
+            "composition": { "type": "number", "minimum": 0, "maximum": 3 },
+            "lighting": { "type": "number", "minimum": 0, "maximum": 3 },
+            "materials": { "type": "number", "minimum": 0, "maximum": 3 },
+            "details": { "type": "number", "minimum": 0, "maximum": 1 }
+          },
+          "additionalProperties": false
+        },
+        "total": { "type": "number", "minimum": 0, "maximum": 10 },
+        "blockers": { "type": "array", "items": { "type": "string" } },
+        "fps_ok": { "type": "boolean" },
+        "round": { "type": "integer", "minimum": 1 },
+        "at": { "type": "string" },
+        "mode": { "type": "string", "enum": ["plus", "pro"] },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    {
+      "type": "object",
+      "required": ["score", "blockers"],
+      "properties": {
+        "score": { "type": "number", "minimum": 0, "maximum": 10 },
+        "blockers": { "type": "array", "items": { "type": "string" } },
+        "round": { "type": "integer", "minimum": 1 },
+        "at": { "type": "string" },
+        "mode": { "type": "string", "enum": ["plus", "pro"] },
+        "fps_ok": { "type": "boolean" },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  ]
+}

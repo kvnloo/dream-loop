@@ -1,18 +1,20 @@
 # dream-loop
 
-By [@anshuc](https://x.com/anshuc).
+By [@anshuc](https://x.com/anshuc). Maintained fork: [kvnloo/dream-loop](https://github.com/kvnloo/dream-loop).
 
 An agent skill that builds a game, app, or scene with impressive visuals, by creating a closed loop:
 
 1. AI "dreams" up a high-quality target screenshot using image generation
 2. AI builds with this target in mind
 3. A separate AI critic compares the live screenshot to the target and provides feedback
-4. AI loops back to step 2 until critic is satisfied
+4. AI loops back to step 2 until the critic is satisfied
 5. Optionally, AI loops back to step 1 and dreams up an even better target based on the current state.
 
 ## Installation
 
-`npx skills add achimala/dream-loop`, or clone into your agent's skills directory, or paste the link into your agent and tell it to figure it out.
+Upstream: `npx skills add achimala/dream-loop`
+
+This maintained fork: `npx skills add kvnloo/dream-loop`, or clone into your agent's skills directory, or paste the link into your agent and tell it to figure it out.
 
 ## Prerequisites
 
@@ -43,6 +45,6 @@ The [pre-simplify gated judge + asset-first loop](references/classic/README.md) 
 
 ## Contributing
 
-I'd love to hear feedback, see results, and accept edits to the skill.
+This fork welcomes PRs at [kvnloo/dream-loop](https://github.com/kvnloo/dream-loop). Please still credit Anshu as the original author.
 
-If you open a PR, please provide example results produced by the skill, to ensure the changes don't regress performance.
+See [CONTRIBUTING.md](CONTRIBUTING.md). If you open a PR, please provide example results produced by the skill when the change could affect visual quality, to ensure the changes don't regress performance.
