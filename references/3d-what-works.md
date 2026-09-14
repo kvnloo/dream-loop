@@ -26,10 +26,11 @@ BlenderAlchemy (ECCV 2024) is VLM **editing** a live scene. Closer to this loop 
 3. Displacement on the soil/ground mesh, scale ~0.001–0.003 object space, method BOTH. Not a pile of spheres.
 4. Pot glaze / CMU / acrylic: roughness map, not a second mesh.
 5. Leaves: alpha cards from the photo beat paddle geometry. Do not nibble leaf count to chase 0.1 judge.
+6. Hero plant like a game artist, not a render farm: **stem curve + leaf atlas cards cut from the locked still**, authored pot, PBR soil disk. TRELLIS the **whole crop** (plant+pot as one mesh) or do not TRELLIS. Do not glue a nursery GLB onto a cylinder and dolly until MSE drops — MSE rewards green pixels, not the still.
 
 ## Camera and composition
 
-- Lock one crop. Overlay 50/50 then `scripts/crop_gate.py` **before** any shader pass. Non-zero exit is a hard stop. Vanishing-line miss is composition, not lighting.
+- Lock one crop. Overlay 50/50 then `scripts/crop_gate.py` **before** any shader pass. Non-zero exit skips lighting/materials judging; continue with a camera or massing action. Vanishing-line miss is composition, not lighting.
 - If composition rose, keep that camera. If the next round drops it, revert the camera, do not “fix” with euler nibble.
 - Hero camera inside the volume looking at the subject. Above-roof / inside-wall stills are composition zero — do not judge materials.
 - `primitive_plane_add(size=2)` then scale by half-extents. `size=1` with the same scale halves the floor.
@@ -38,7 +39,7 @@ BlenderAlchemy (ECCV 2024) is VLM **editing** a live scene. Closer to this loop 
 
 1. Lock `.dream-loop/target.png`. Do not swap subject.
 2. One change class per round (camera **or** massing **or** material **or** one mesh).
-3. Recapture the same camera.
+3. Recapture the same camera unless this round’s change class is camera.
 4. Fresh judge child every round. Rubric: composition 0–3, lighting 0–3, materials 0–3, details 0–1, /10. Nitpick.
 5. Stall: best score not +1 in two rounds → stop. Meta table every 5 rounds in **that product’s** `.dream-loop/meta.md`.
 6. Exit ≥ 8/10 or user stop.
@@ -51,6 +52,9 @@ BlenderAlchemy (ECCV 2024) is VLM **editing** a live scene. Closer to this loop 
 - Reusing the same judge context.
 - Whole-scene tiled maps on the hero still (use one-mesh ortho after shape is gated). See `references/tiled-mesh.md`.
 - Chasing lighting while overlay lines disagree.
+- Camera dolly / crop to cheat MSE. Keep requires **both** judge /10 and MSE, with pot+soil+backdrop still in frame. Skip `crop_gate.py` and you will judge materials on a composition fail.
+- Stall ignored: if best /10 is not +1 in two rounds, stop. A new generator class is a rethink, not r10–r15 of the same plant.
+- Pixel-match a plant still before the set exists. Blockout first: same camera skeleton (pot in frame, ground plane, wall masses, light direction). Invent materials. Hero foliage later.
 
 ## How to add a lesson
 

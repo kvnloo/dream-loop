@@ -2,9 +2,9 @@
 
 dream-loop is a **skill pack**. Helio-cortex, Rally House, and GrowTwin are **different products**. They do not share git, stills, cameras, or a status bus.
 
-What they share: this repo’s loop (lock target → capture → independent judge → one change class → stall rules), `scripts/overlay.py`, optional `scripts/tile_grid.py`, and [3d-what-works.md](3d-what-works.md) (process, not product scores).
+What they share: this repo’s loop (lock target → overlay → crop_gate **skips lighting if fail** → independent judge → one change class → stall), `scripts/overlay.py`, `scripts/crop_gate.py`, [hard-gates.md](hard-gates.md), optional `scripts/tile_grid.py`, and [3d-what-works.md](3d-what-works.md) (process, not product scores).
 
-Product-specific procedure stays in that product’s profile skill (`dream-loop-cycles`, `garden-visual-twin`, helio docs). Those skills must not rewrite the judge rubric. If they disagree with `SKILL.md` / `pro-mode/workflow.md`, this repo wins.
+Product-specific procedure stays in that product’s profile skill (`dream-loop-cycles`, `garden-visual-twin`, helio docs). Those skills must not rewrite the judge rubric. If they disagree with the **judge rubric**, this repo wins. Product skills **do** define what the locked frame contains (one plant vs facility hero). Do not treat “one subject” as “never render a hall.”
 
 ## Per product
 
@@ -12,7 +12,7 @@ Each product has its own worktree and its own `.dream-loop/` (gitignored). Never
 
 ## Skill rules that travel (not product facts)
 
-1. One subject, one camera, one capture.
+1. One locked frame, one camera, one capture. Frame = `target.png`, not “must be a single object.”
 2. Overlay target vs capture before shaders. Vanishing-line miss is composition, not materials.
 3. Keep the camera that raised composition. Revert if the next round drops.
 4. Stall: best score not +1 in two rounds → stop nibble, ask. Meta table every 5 lives **in that product’s** `.dream-loop/meta.md`.

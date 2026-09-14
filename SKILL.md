@@ -6,7 +6,7 @@ license: MIT
 
 # dream-loop
 
-Closed loop: lock a target still, capture one subject with one camera, overlay + crop_gate (hard stop), independent judge, one change class, stall. Pro workflow unless the user says Plus.
+Closed loop: lock a target still, capture one locked frame with one camera, overlay + crop_gate (failure skips lighting/materials, not camera/massing action), independent judge, one change class, stall. Pro workflow unless the user says Plus.
 
 Do not read both Plus and Pro docs. They are not inter-compatible.
 
@@ -22,10 +22,10 @@ Do not merge product worktrees. Do not mix stills. Product skills must not rewri
 
 ## Hard gates
 
-1. One subject, one camera, one capture. Not the whole scene every round.
+1. One **locked frame**, one camera, one capture. The frame is whatever `target.png` is (plant close-up **or** facility hero). Do not add a second product, HUD, or sibling subject into that frame.
 2. Overlay target vs capture **before shaders**: `python scripts/overlay.py .dream-loop/target.png capture.png .dream-loop/overlays`
-3. `python scripts/crop_gate.py .dream-loop/target.png capture.png .dream-loop/overlays` — **hard stop** if exit ≠ 0. Vanishing-line miss = composition fail. Do not judge lighting/materials.
-4. Keep the camera that raised composition. Revert if score drops. No euler-only round.
+3. `python scripts/crop_gate.py .dream-loop/target.png capture.png .dream-loop/overlays` — if exit ≠ 0, **do not judge lighting/materials**. Still take a camera or massing action this round. It is not a freeze.
+4. Keep the camera that raised composition. Revert if score drops. Camera **is** a valid change class when overlay lines miss. Euler-only is forbidden only when massing blockers are already listed (do not hunt loc/look instead of adding the missing aisle/opening).
 5. Fresh judge child every round (never reuse). Composition 0–3, lighting 0–3, materials 0–3, details 0–1. Prompt: [references/hard-gates.md](references/hard-gates.md) verbatim.
 6. One change class per round (camera **or** massing **or** material **or** one mesh).
 7. Meta table every 5 rounds in **that product’s** `.dream-loop/meta.md` from [templates/meta.md](templates/meta.md).
