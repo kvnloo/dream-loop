@@ -6,13 +6,14 @@ Prerequisites:
 - The target image
 
 The loop:
-1. Take a first pass at implementing the target
-2. Test and validate the product yourself and ensure it works and looks as you intend
-3. Capture a screenshot of the product's current state
-4. Submit the screenshot + target image to an independent judge subagent with a fresh context (see below for how to set up the judge).
-5. Address all of the judge's feedback carefully
-6. Test and validate the product yourself and ensure it works and looks as you intend
-7. Evaluate exit criteria (below). If you should exit, stop here. If not, return to step 3 and loop again.
+1. One locked frame, one camera, one capture. Match `target.png`, whether a close-up or facility hero.
+2. Overlay then crop_gate **before shaders**. If `scripts/crop_gate.py` exits non-zero, composition fail — skip lighting/materials judging, but continue with a camera or massing action. Keep/revert camera based on composition.
+3. One change class this round only.
+4. Fresh judge subagent (new context). Verbatim prompt in [hard-gates.md](../hard-gates.md).
+5. Address the judge’s **one** change class. Recapture the same camera unless the class was camera.
+6. If composition dropped, revert the camera. Camera is a valid change class; do not euler-nibble when massing blockers are already listed.
+7. Every 5 rounds: append [templates/meta.md](../../templates/meta.md) in this product’s `.dream-loop/meta.md`.
+8. Exit criteria (below). Else return to overlay + crop_gate.
 
 ## 3D Assets
 
@@ -22,7 +23,7 @@ During implementation, you may need 3D assets. At such times, consult [reference
 
 Judging should ideally be done by a fresh subagent with a clean context each time, to keep it objective and cheap.
 
-The judge should be given the latest live screenshot, the target image, the previous round's screenshot and verdict if any, and this prompt:
+The judge should be given the latest live screenshot, the target image, the overlay and crop gate result, the previous round's screenshot and verdict if any, and the verbatim prompt in [hard-gates.md](../hard-gates.md). On crop failure, use its composition-only override (no total /10). The full-score rubric below applies only after the crop gate passes:
 
 > You are judging how close the current product is relative to the target image. Score along this rubric:
 >
@@ -38,10 +39,13 @@ The judge should be given the latest live screenshot, the target image, the prev
 >
 > If a previous verdict and screenshot are provided, maintain consistency with prior judgment, but do not feel obligated to match or increase score. If the product regressed, it should score worse.
 
+## Same skill, different products
+
+Unrelated products may reuse this workflow. Follow [../lanes.md](../lanes.md). Do not mix their stills or extras. Overlay + crop_gate before judging lighting. One change class per round. No git-tracked sqlite. No TDD-for-renders.
+
 ## Exit criteria
 
 - **score >= 8 and target FPS acceptable**: done! Show the user the latest screenshot and ask if they want more iterations.
 - **score >= 8 but target FPS unacceptable**: optimize, aiming for lossless wins first, then optimizations that have minimal visual impact. Re-judge after optimizations to ensure you didn't regress visuals.
-- **Stall approaching**: the best score hasn't improved by a full point in 2 rounds, or the judge has named the same gap 2 times in a row. Stop making incremental tweaks. Step back and rethink the entire approach and scene, and try to find architectural or big-picture reasons why you're not reaching the target image. It may be that assets are just not good enough, in completely wrong places, the lighting needs to be reworked entirely, the camera is totally wrongly positioned, or other such major issues. Do not make small changes, aim for a dramatic improvement.
-- **Stalled**: you tried the **Stall approaching** large architectural change but it didn't work; the judge still gave the same score or worse. Don't waste tokens trying other dramatic changes. Stop and ask the user to weigh in on if the current state looks good enough or if something is significantly off compared to the target.
+- **Stall**: the best score hasn't improved by a full point in 2 rounds, or the judge named the same gap twice. **Stop nibble. Ask the user.** Do not euler-hunt. A later architectural rethink is allowed only after the user says continue.
 - **None of the above**: Continue looping. Do not exit.

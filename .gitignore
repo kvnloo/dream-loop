@@ -1,1 +1,3 @@
 .dream-loop/
+*.sqlite
+*.sqlite3
