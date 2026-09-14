@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kvnloo/dream-loop/references/target.schema.json",
+  "title": "dream-loop target.json",
+  "type": "object",
+  "properties": {
+    "width": { "type": "integer", "minimum": 1 },
+    "height": { "type": "integer", "minimum": 1 },
+    "prompt": { "type": "string" },
+    "source": { "type": "string" },
+    "vertical": { "type": "string", "enum": ["realtime-game", "product-viz", "ad-still"] }
+  },
+  "additionalProperties": true
+}
