@@ -21,7 +21,7 @@ BlenderAlchemy (ECCV 2024) is VLM **editing** a live scene. Closer to this loop 
 
 ## Materials
 
-1. Download or crop a seamless set. PolyHaven 1k is enough to gate; 2k/4k after composition holds.
+1. Download or crop a seamless set. `scripts/polyhaven_pbr.py dirt --out .dream-loop/pbr --res 1k`. 1k is enough to gate; 2k/4k after composition holds. See [creative-3d.md](creative-3d.md).
 2. One Principled BSDF. Image textures: sRGB albedo, Non-Color normal/rough/disp.
 3. Displacement on the soil/ground mesh, scale ~0.001–0.003 object space, method BOTH. Not a pile of spheres.
 4. Pot glaze / CMU / acrylic: roughness map, not a second mesh.
@@ -29,7 +29,7 @@ BlenderAlchemy (ECCV 2024) is VLM **editing** a live scene. Closer to this loop 
 
 ## Camera and composition
 
-- Lock one crop. Overlay 50/50 target vs capture **before** any shader pass. Vanishing-line miss is composition, not lighting.
+- Lock one crop. Overlay 50/50 then `scripts/crop_gate.py` **before** any shader pass. Non-zero exit is a hard stop. Vanishing-line miss is composition, not lighting.
 - If composition rose, keep that camera. If the next round drops it, revert the camera, do not “fix” with euler nibble.
 - Hero camera inside the volume looking at the subject. Above-roof / inside-wall stills are composition zero — do not judge materials.
 - `primitive_plane_add(size=2)` then scale by half-extents. `size=1` with the same scale halves the floor.
