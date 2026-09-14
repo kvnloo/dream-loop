@@ -94,5 +94,7 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int, default=4172)
     args = parser.parse_args()
     handler = partial(Handler, directory=str(Path(args.directory).resolve()))
-    print(f"Preview http://127.0.0.1:{args.port}; POST PNG to /__capture; compare /__compare", flush=True)
-    ThreadingHTTPServer(("127.0.0.1", args.port), handler).serve_forever()
+    httpd = ThreadingHTTPServer(("127.0.0.1", args.port), handler)
+    host, port = httpd.server_address
+    print(f"Preview http://{host}:{port}; POST PNG to /__capture; compare /__compare", flush=True)
+    httpd.serve_forever()

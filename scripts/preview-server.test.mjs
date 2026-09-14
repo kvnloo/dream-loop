@@ -35,6 +35,17 @@ function request(port, method, urlPath, { body, headers } = {}) {
   });
 }
 
+async function requestRetry(port, method, urlPath, options = {}) {
+  let last;
+  for (let i = 0; i < 25; i++) {
+    try { return await request(port, method, urlPath, options); } catch (error) {
+      last = error;
+      await new Promise(resolve => setTimeout(resolve, 40));
+    }
+  }
+  throw last;
+}
+
 function waitForServer(child, port) {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
@@ -75,21 +86,21 @@ test('preview-server serves compare, captures atomically, and denies other dotfi
   t.after(() => { child.kill('SIGTERM'); });
   await waitForServer(child, port);
 
-  const compare = await request(port, 'GET', '/__compare');
+  const compare = await requestRetry(port, 'GET', '/__compare');
   assert.equal(compare.status, 200);
   assert.match(compare.body.toString(), /target \| live|dream-loop compare/);
 
-  const denied = await request(port, 'GET', '/.env');
+  const denied = await requestRetry(port, 'GET', '/.env');
   assert.equal(denied.status, 404);
 
-  const capture = await request(port, 'POST', '/__capture', {
+  const capture = await requestRetry(port, 'POST', '/__capture', {
     body: PNG, headers: { 'Content-Type': 'image/png', 'Content-Length': String(PNG.length) },
   });
   assert.equal(capture.status, 200);
   const latest = path.join(dir, '.dream-loop', 'captures', 'latest.png');
   assert.deepEqual(fs.readFileSync(latest), PNG);
 
-  const live = await request(port, 'GET', '/.dream-loop/captures/latest.png');
+  const live = await requestRetry(port, 'GET', '/.dream-loop/captures/latest.png');
   assert.equal(live.status, 200);
   assert.deepEqual(live.body, PNG);
 });
