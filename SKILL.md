@@ -8,15 +8,16 @@ license: MIT
 
 This is a process for you to autonomously build extremely impressive visuals, especially for 3D scenes (e.g. in a game or app).
 
+Closed loop: lock a target still, capture one locked frame with one camera, overlay + crop_gate (failure skips lighting/materials, not camera/massing action), independent judge, one change class, stall.
+
 If this is the first run, or you do not have image generation, read [references/onboarding.md](references/onboarding.md) before continuing.
 
 Your first step is to determine which workflow to use:
 - If the user told you to use the Plus or Pro workflow explicitly, that's your answer
 - If not, check if the user is on a low or high tier coding subscription. "Low tier" means ChatGPT Plus or equivalent. "High tier" means ChatGPT Pro. For low-tier subscriptions, use the Plus workflow. For high-tier, use the Pro workflow.
 
-Plus workflow: read [references/plus-mode/workflow.md](references/plus-mode/workflow.md)
-
-Pro workflow: read [references/pro-mode/workflow.md](references/pro-mode/workflow.md)
+- Plus: [references/plus-mode/workflow.md](references/plus-mode/workflow.md)
+- Pro: [references/pro-mode/workflow.md](references/pro-mode/workflow.md)
 
 After that choice, also read [references/common.md](references/common.md). That is the one shared document both workflows may load.
 
@@ -24,15 +25,36 @@ Do not read both Plus and Pro workflow documents. They are not inter-compatible.
 
 **Classic workflow (optional):** If the user asks for **Dream Loop Classic**, the **gated judge**, or **asset-first** iteration, read [references/classic/README.md](references/classic/README.md) and follow that read order instead of Plus/Pro above. Classic and Plus/Pro must not be mixed in one run.
 
+Hard gates (required every Pro / Classic still-match round): [references/hard-gates.md](references/hard-gates.md)
+Same skill, different products: [references/lanes.md](references/lanes.md)
+3D process: [references/3d-what-works.md](references/3d-what-works.md)
+Creative skills that earned a seat: [references/creative-3d.md](references/creative-3d.md)
+
+Do not merge product worktrees. Do not mix stills. Product skills must not rewrite the judge rubric; this repo wins.
+
 # Guidance applicable to both workflows
 
 ## General
 
-Create and use a `.dream-loop` folder for working context/files, and gitignore it.
+Create and use a `.dream-loop` folder for working context/files, and gitignore it. Copy [templates/meta.md](templates/meta.md) there once.
 
 Record 3D assets in `.dream-loop/assets.json` (see [references/assets.schema.json](references/assets.schema.json)) before composing the scene.
 
 If the browser tool cannot save a PNG, run [scripts/preview-server.py](scripts/preview-server.py) (`POST /__capture`; side-by-side at `/__compare`). Captures land in `.dream-loop/captures/`.
+
+## Hard gates
+
+1. One **locked frame**, one camera, one capture. The frame is whatever `target.png` is (plant close-up **or** facility hero). Do not add a second product, HUD, or sibling subject into that frame.
+2. Overlay target vs capture **before shaders**: `python scripts/overlay.py .dream-loop/target.png capture.png .dream-loop/overlays`
+3. `python scripts/crop_gate.py .dream-loop/target.png capture.png .dream-loop/overlays` — if exit ≠ 0, **do not judge lighting/materials**. Still take a camera or massing action this round. It is not a freeze.
+4. Keep the camera that raised composition. Revert if score drops. Camera **is** a valid change class when overlay lines miss. Euler-only is forbidden only when massing blockers are already listed (do not hunt loc/look instead of adding the missing aisle/opening).
+5. Fresh judge child every round (never reuse). Composition 0–3, lighting 0–3, materials 0–3, details 0–1. Prompt: [references/hard-gates.md](references/hard-gates.md) verbatim.
+6. One change class per round (camera **or** massing **or** material **or** one mesh).
+7. Meta table every 5 rounds in **that product’s** `.dream-loop/meta.md` from [templates/meta.md](templates/meta.md).
+8. Stall: best score not +1 in 2 rounds → stop nibble, ask the user.
+9. Tiled PBR for dirt/lawn; no sphere nibble.
+10. Progress = MEDIA of target + capture, not status text.
+11. `.dream-loop/` gitignored. No git-tracked sqlite process. Do not TDD renders.
 
 ## The target image
 
@@ -49,7 +71,7 @@ When generating images, avoid using words like "concept art" in the prompt. This
 
 Watch for **overbaked** (noisy photographic clutter) and **oversimplified** (toy/flat) targets; see [references/classic/concept.md](references/classic/concept.md). Confirm a generated target with the user once unless they said "just go".
 
-Store the image in `.dream-loop/target.png`. After generating it, write `.dream-loop/target.json` `{width,height,prompt,source}` when those are knowable. Optional `vertical`: `realtime-game` | `product-viz` | `ad-still` (see [references/target.schema.json](references/target.schema.json)).
+Store the image in `.dream-loop/target.png`. After generating it, write `.dream-loop/target.json` `{width,height,prompt,source}` when those are knowable. Optional `vertical`: `realtime-game` | `product-viz` | `ad-still` (see [references/target.schema.json](references/target.schema.json)). Do not swap subjects mid-round.
 
 ## Optional: tiled mesh maps
 

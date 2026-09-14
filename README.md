@@ -16,6 +16,18 @@ Upstream: `npx skills add achimala/dream-loop`
 
 This maintained fork: `npx skills add kvnloo/dream-loop`, or clone into your agent's skills directory, or paste the link into your agent and tell it to figure it out.
 
+## Drop into Hermes
+
+1. Clone this repo into a Hermes skills dir, e.g. `~/.hermes/skills/software-development/dream-loop` or a profile `skills/software-development/dream-loop`.
+2. Confirm `SKILL.md` is at the skill root (Hermes loads that file).
+3. Product work stays in **that product’s** gitignored `.dream-loop/` (copy `templates/meta.md` there). Never merge other products’ worktrees or stills.
+4. Lock one frame (a close-up or facility hero), one camera, one capture. Each round: overlay + `scripts/crop_gate.py` (exit ≠ 0 skips lighting/materials judging; continue with a camera or massing action). Then a **fresh** judge child with the verbatim prompt in `references/hard-gates.md`.
+5. One change class per round. Stall if best score is not +1 in 2 rounds — ask the user; do not nibble.
+6. Progress is MEDIA (target + capture + overlay), not a status paragraph.
+7. Do not git-track sqlite under `.dream-loop/`. Do not TDD the render.
+
+This fork’s gates live in `references/hard-gates.md`.
+
 ## Prerequisites
 
 You need an AI agent with:
