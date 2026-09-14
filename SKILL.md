@@ -45,6 +45,8 @@ Store the image in `.dream-loop/target.png`.
 
 This skill is reused by unrelated products (facility still, house photo, plant close-up). Read [references/lanes.md](references/lanes.md). Do not treat those products as one project. Do not invent a second loop.
 
+3D process that held up across products: [references/3d-what-works.md](references/3d-what-works.md). Add lessons there (rules, not round ids).
+
 Overlay: `python scripts/overlay.py .dream-loop/target.png capture.png .dream-loop/overlays`
 
 ## Time budget

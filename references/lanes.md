@@ -2,7 +2,7 @@
 
 dream-loop is a **skill pack**. Helio-cortex, Rally House, and GrowTwin are **different products**. They do not share git, stills, cameras, or a status bus.
 
-What they share: this repo’s loop (lock target → capture → independent judge → one change class → stall rules) plus `scripts/overlay.py` and optional `scripts/tile_grid.py`.
+What they share: this repo’s loop (lock target → capture → independent judge → one change class → stall rules), `scripts/overlay.py`, optional `scripts/tile_grid.py`, and [3d-what-works.md](3d-what-works.md) (process, not product scores).
 
 Product-specific procedure stays in that product’s profile skill (`dream-loop-cycles`, `garden-visual-twin`, helio docs). Those skills must not rewrite the judge rubric. If they disagree with `SKILL.md` / `pro-mode/workflow.md`, this repo wins.
 
