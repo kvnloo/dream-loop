@@ -51,6 +51,10 @@ Watch for **overbaked** (noisy photographic clutter) and **oversimplified** (toy
 
 Store the image in `.dream-loop/target.png`. After generating it, write `.dream-loop/target.json` `{width,height,prompt,source}` when those are knowable. Optional `vertical`: `realtime-game` | `product-viz` | `ad-still` (see [references/target.schema.json](references/target.schema.json)).
 
+## Optional: tiled mesh maps
+
+For **one object** that needs fabric, hair, pores, or other microtexture, after camera/crop is locked, use [references/tiled-mesh.md](references/tiled-mesh.md) and `scripts/tile_grid.py`. Do not tile a full scene still or replace `target.png`.
+
 ## Time budget
 
 If the user gives a time budget, record the time at start of the loop (after locking target.png), and check the clock between rounds.

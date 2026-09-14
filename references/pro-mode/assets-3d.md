@@ -34,6 +34,8 @@ Blender is the next option if installed locally. You can use its Python scriptin
 
 You'll need to texture and add additional detail (e.g. normal maps) via image generation.
 
+For fabric, hair, chainmail, or other microtexture on **that mesh only**, after crop is locked, use the optional tiled-map stage in [tiled-mesh.md](../tiled-mesh.md). Do not run it on the whole scene.
+
 If Blender is unavailable or overkill, move on to 4.
 
 ### 4. Procedural assets
