@@ -19,5 +19,6 @@ Each product has its own worktree and its own `.dream-loop/` (gitignored). Never
 5. Tiled PBR for dirt/lawn/masonry/acrylic. No sphere nibble.
 6. Tiled mesh maps only after shape is gated, on one mesh ortho — never on a full scene still.
 7. Fresh judge child every round.
+8. bpy authoring: prefer Astra high-effort. Grok-4.6 / GPT-5.6-sol are backups. Do not use free Nemotron for mesh/material scripts (camera + shading fail). Image-to-mesh is TRELLIS, not LLM bpy.
 
 Product names (basil r9, barn r12, etc.) do not belong in this file.

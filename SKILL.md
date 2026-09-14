@@ -24,6 +24,8 @@ Do not read both documents. They are not inter-compatible.
 
 Create and use a `.dream-loop` folder for working context/files, and gitignore it.
 
+If more than one product is using this skill at once, read [references/lanes.md](references/lanes.md). Same loop, different worktrees. Never share stills or merge to “coordinate.”
+
 ## The target image
 
 The key piece of Dream Loop is to first create the "dream version" of the user request using image generation, then iterate to build it.
