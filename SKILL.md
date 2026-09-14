@@ -39,6 +39,12 @@ When generating images, avoid using words like "concept art" in the prompt. This
 
 Store the image in `.dream-loop/target.png`.
 
+## Multiple products / lanes
+
+If more than one scene uses this skill (facility still, house photo, plant close-up), read [references/lanes.md](references/lanes.md). Coordinate skills here. Do not fork a second loop in a product repo.
+
+Overlay: `python scripts/overlay.py .dream-loop/target.png capture.png .dream-loop/overlays`
+
 ## Time budget
 
 If the user gives a time budget, record the time at start of the loop (after locking target.png), and check the clock between rounds.
