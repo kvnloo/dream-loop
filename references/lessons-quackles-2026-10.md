@@ -26,3 +26,7 @@ Rules distilled from a character-plus-set lookdev run. Same format as [3d-what-w
 ## Tool chain for a texture from a target
 
 - **Chain tools instead of asking one model for a finished material:** segment the target (SAM2) -> rectify the surface to a flat swatch -> image model (gpt-image class) for a delit, tileable albedo + height -> derive normal and roughness -> apply with real-world-scale UVs. Each step fixes one thing (mask, perspective, lighting, tiling, scale) that the next step cannot.
+
+## Scoring
+
+- **Gate and judge the 3D scene against the target with any 2D UI/overlay masked out identically on both images; score the UI separately against the shipped page.** A website mockup target bakes logo, nav, headline and text panels into the still; the render never contains them, so they add edge residual and judge penalties no scene change can remove, and they hide whether the camera and massing actually moved. Masking only the target (or masking differently) creates fake edges, so fill the same mask with the same neutral colour in temp copies of both, run the gate scripts unchanged, and keep the locked target file untouched.
