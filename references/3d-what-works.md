@@ -59,3 +59,5 @@ BlenderAlchemy (ECCV 2024) is VLM **editing** a live scene. Closer to this loop 
 ## How to add a lesson
 
 One imperative rule + why. No round numbers. Patch this file on the skill branch (or main once merged). Profile skills may **point** here; they must not fork a second rubric.
+
+Lessons file (camera-projected textures, sharpness, stone): [lessons-quackles-2026-10.md](lessons-quackles-2026-10.md).
