@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kvnloo/dream-loop/references/fps.schema.json",
+  "title": "dream-loop fps.json",
+  "type": "object",
+  "required": ["fps", "method"],
+  "properties": {
+    "fps": { "type": "number" },
+    "method": { "type": "string", "enum": ["raf-2s", "chrome-fps"] },
+    "at": { "type": "string" },
+    "notes": { "type": "string" }
+  },
+  "additionalProperties": true
+}

@@ -12,11 +12,13 @@ If unallowed or you can't find the model you need, move on to 2.
 
 The recommendation is fal.ai. Check your environment for a Fal API key. If present, use it.
 
-For Fal requests, read [fal.md](fal.md) and use the bundled batch helper. Use Fal’s HTTP API or SDK through the shell. Only report Fal as unavailable after an actual request fails and reasonable recovery fails, or credentials/access are absent.
+For Fal requests, read [fal.md](../fal.md) and use the bundled batch helper. Use Fal’s HTTP API or SDK through the shell. Only report Fal as unavailable after an actual request fails and reasonable recovery fails, or credentials/access are absent.
 
 This does not count as "downloading assets". You are allowed to do this, even if the user says not to download internet assets (that refers to 1 above, not this).
 
-Start with the two verified endpoint/input recipes in [fal.md](fal.md), using its offline check and batch commands. The default model roles are:
+Before composing the scene, write `.dream-loop/assets.json` (see [assets.schema.json](../assets.schema.json)) with `id`, `role`, `source`, `paths`, `status`, and `falJobId` aligned with `.dream-loop/fal-jobs.json`.
+
+Start with the two verified endpoint/input recipes in [fal.md](../fal.md), using its offline check and batch commands. The default model roles are:
 - A strong model (like tripo3d/h3.1/image-to-3d or newer equivalent) - around $0.30/asset. Use this for large assets or key, important ones like characters, buildings, scenery, greenery.
 - A smaller model (like fal-ai/trellis or newer equivalent) - around $0.02/asset. Use this for things like small environmental/decorative objects, etc.
 
@@ -32,6 +34,8 @@ Blender is the next option if installed locally. You can use its Python scriptin
 
 You'll need to texture and add additional detail (e.g. normal maps) via image generation.
 
+For fabric, hair, chainmail, or other microtexture on **that mesh only**, after crop is locked, use the optional tiled-map stage in [tiled-mesh.md](../tiled-mesh.md). Do not run it on the whole scene.
+
 If Blender is unavailable or overkill, move on to 4.
 
 ### 4. Procedural assets
@@ -42,4 +46,4 @@ Don't do this to save time or reduce complexity. Do it only because it is either
 
 ### Note on textures for 3D assets (in all of the above cases)
 
-If you have an image generation tool, use it for textures, normal maps, skyboxes, etc, to enhance the visuals. This looks better and is faster than procedurally generated textures or normals. Do not replace missing generated textures with procedural noise or flat-color substitutes. Textures and normals make things look realistic and impressive, do not skip them.
+If you have an image generation tool, use it for textures, normal maps, skyboxes, etc. to enhance the visuals. This looks better and is faster than procedurally generated textures or normals. Do not replace missing generated textures with procedural noise or flat-color substitutes. Textures and normals make things look realistic and impressive, do not skip them.

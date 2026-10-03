@@ -6,12 +6,12 @@ Use these working recipes first; do not rebuild the API integration or search th
 
 | Role | Exact endpoint | Starting input |
 |---|---|---|
-| Architecture, characters, hero props | `tripo3d/h3.1/image-to-3d` | `{"texture":true,"pbr":true,"face_limit":200000}` |
+| Architecture, characters, hero props | `tripo3d/h3.1/image-to-3d` | `{"texture":true,"pbr":true,"face_limit":80000}` |
 | Small props and dressing | `fal-ai/trellis` | `{"mesh_simplify":0.95,"texture_size":1024}` |
 
-Trellis has **no `/image-to-3d` suffix**. Its documented texture sizes are 512, 1024, and 2048; start with 1024. The two models take different parameters, so do not copy one model's input wholesale to the other.
+Trellis has **no `/image-to-3d` suffix**. Its documented texture sizes are 512, 1024, and 2048; start with 1024. Keep `mesh_simplify` in **0.9–0.98**. H3.1 `face_limit` defaults to **80000** and must be an integer from **1000 to 2_000_000**. The two models take different parameters, so do not copy one model's input wholesale to the other.
 
-Create `.dream-loop/fal-jobs.json`. Keep its job IDs aligned with `.dream-loop/assets.json`. Adapt the two entries below to the planned assets; paths are relative to the jobs file:
+Create `.dream-loop/fal-jobs.json`. Keep its job IDs aligned with `.dream-loop/assets.json`. Adapt the two entries below to the planned assets; paths are relative to the jobs file and **must stay inside that directory** (the helper jails `image` and `output`):
 
 ```json
 {
@@ -20,14 +20,14 @@ Create `.dream-loop/fal-jobs.json`. Keep its job IDs aligned with `.dream-loop/a
       "id": "arch",
       "endpoint": "tripo3d/h3.1/image-to-3d",
       "image": "assets/arch.png",
-      "output": "../models/arch.glb",
-      "input": { "texture": true, "pbr": true, "face_limit": 200000 }
+      "output": "models/arch.glb",
+      "input": { "texture": true, "pbr": true, "face_limit": 80000 }
     },
     {
       "id": "rubble",
       "endpoint": "fal-ai/trellis",
       "image": "assets/rubble.png",
-      "output": "../models/rubble.glb",
+      "output": "models/rubble.glb",
       "input": { "mesh_simplify": 0.95, "texture_size": 1024 }
     }
   ]
@@ -42,13 +42,15 @@ node /path/to/dream-loop/scripts/fal-batch.mjs submit .dream-loop/fal-jobs.json
 node /path/to/dream-loop/scripts/fal-batch.mjs collect .dream-loop/fal-jobs.json
 ```
 
-`check` is offline, needs no API key, and does not change the job file. Run it before submission to catch the incorrect Trellis route, mixed-model options, missing images, and invalid image files. `--help` also prints both recipes.
+`check` is offline, needs no API key, and does not change the job file. It prints `{ "jobCount": N, "jobs": [...] }`. Run it before submission to catch the incorrect Trellis route, mixed-model options, missing images, invalid image files, and path jail escapes. `--help` also prints both recipes.
 
-`submit` skips images that do not exist yet. Run it as source images become ready, without waiting for the entire image batch. `collect` performs one status/download pass; rerun it after a reasonable interval while doing useful independent work. A fourth argument sets concurrency (default 4). Keep each command's job file intact so it can resume. Do not run overlapping commands against the same job file.
+`submit` skips images that do not exist yet. Run it as source images become ready, without waiting for the entire image batch. `collect` performs one status/download pass; rerun it after a reasonable interval while doing useful independent work. A fourth argument sets concurrency (default 4; **`0` is serial**, not coerced to 4). Keep each command's job file intact so it can resume. Do not run overlapping commands against the same job file.
 
 The helper sends the selected source images to Fal as data URIs; use it within the user's authorization. It prints only compact job status, never image payloads or credentials.
 
-If the sandbox blocks network access, use the environment’s normal approved network execution path. A DNS or connection failure recorded as `not-submitted` can be retried once access is available; do not mistake it for a rejected Fal generation or invent a procedural fallback.
+If the sandbox blocks network access, use the environment’s normal approved network execution path. A DNS or connection failure recorded as `not-submitted` can be retried once access is available; HTTP **429** or **503** before a `request_id` is also `not-submitted` (retryable), not `submission-uncertain`. Do not mistake either for a rejected Fal generation or invent a procedural fallback.
+
+Downloads are https-only from Fal hosts (`queue.fal.run`, `fal.media`, `*.fal.media`, and fal.ai CDNs). IPs, `.internal`, and URLs with userinfo are rejected. Prefer `model_urls.pbr_model` when `input.pbr`, then `model_urls.glb`, then `model_glb`, then `model_mesh`. FBX-only results are a `result-error`; do not write them as `.glb`.
 
 `downloaded` means a complete GLB was saved, not that visual validation passed. Preview the models and materials before marking assets ready.
 
@@ -56,7 +58,7 @@ Use `error_stage` and the sanitized `error_detail` before deciding how to recove
 
 - `rejected` at submission: Fal explicitly rejected the request before returning an ID. Correct the reported endpoint, input, or authorization issue, then submit again.
 - `submission-uncertain` or `submitting`: acceptance is unknown. Preserve the record and reconcile it with Fal request history before any replacement submission. Do not clear IDs/URLs or create a new job just to bypass this protection.
-- `result-error`: the queue finished, but fetching its result failed. `COMPLETED` alone does not mean model generation succeeded. Inspect the error detail and retry collection using the same returned URLs when appropriate. Preserve a confirmed failed job; a deliberate replacement gets a new ID and records which failed job it replaces.
+- `result-error`: the queue finished, but fetching its result failed, or Fal reported `FAILED`/`CANCELLED` (terminal: do not keep polling). `COMPLETED` alone does not mean model generation succeeded. Inspect the error detail and retry collection using the same returned URLs when appropriate, except terminal `FAILED`/`CANCELLED`. Preserve a confirmed failed job; a deliberate replacement gets a new ID and records which failed job it replaces.
 - `download-error`: the result was fetched but no valid complete GLB was saved. Retry collection; do not regenerate an already accepted model merely because its download failed.
 
 The helper keeps accepted IDs even when a submission response is incomplete and refuses to resubmit a record that still has queue URLs but lost its ID. Do not reconstruct queue URLs, overwrite failed-job history, or replace failed assets with procedural models.
