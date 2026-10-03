@@ -15,3 +15,5 @@
 - Compare sheets refuse mixed-size inputs: pad/scale target, parent and candidate to one canvas (ffmpeg scale+pad) before compare_sheet.py, and log a failure instead of swallowing it, or sheets silently never appear.
 - Game-style UI needs visible feedback: show labelled estimate ranges (EST) where a real model exists instead of blank dashes; dashes only when nothing is computed.
 - An owner annotation is evidence with uncertainty. Verify registration from image features, preserve visible faces, and separate registration residual from hand-drawn ambiguity. Ask for a flattened export when marks are missing; do not invent them.
+
+- Human review checkpoints derived from the Quackles run: [human review](human-review.md), template [templates/human-review.md](../templates/human-review.md).
