@@ -10,6 +10,10 @@ This is a process for you to autonomously build extremely impressive visuals, es
 
 Own the complete visual environment: its spatial structure, surface variation, surrounding visual mass, and depth must support the focal subjects. Infer the needed coverage and level of detail from the concept and the user's camera controls. A collection of finished hero assets does not establish that the environment is complete.
 
+## Human review
+
+The shared [human-review contract](../human-review.md) applies to Classic Pro and Classic Plus without importing the simplified workflows or changing the tier rubric. Reuse locked user decisions before work; at checkpoints show the accepted control beside the candidate. Numeric exits mean ready for review, not human acceptance. Human-review gates take precedence over instructions to continue, overhaul, or wrap up; budget exhaustion is a stop, not approval.
+
 ## References
 
 Read references only at the indicated step; do not preload all references.
@@ -60,7 +64,7 @@ When invoking the judge, give it [references/judge.md](references/judge.md) and 
 
 ## Exit criteria
 
-- **score >= 8 and target FPS acceptable**: done! Show the user the latest screenshot and ask if they want more iterations.
+- **score >= 8 and target FPS acceptable**: ready for human review, not automatically done. Show the review packet and wait for the scoped decision before promotion.
 - **score >= 8 but target FPS unacceptable**: optimize, aiming for lossless wins first, then optimizations that have minimal visual impact. Re-judge after optimizations to ensure you didn't regress visuals.
 - **Stall approaching**: the best score hasn't improved by a full point in 2 rounds, or the judge has named the same gap 3 times. Stop making incremental tweaks. Step back and assess the whole frame against the concept: what about the *approach* is capping the score? Then make a big, structural change in one round: swap the asset strategy (regenerate the failing assets, or use another asset source permitted by the selected mode and user), rewrite the lighting model, rebuild the composition, change the camera. Self-check the result before it goes to the judge, since big changes break things. Only do the same-old parameter tuning if you can articulate why it would move the score this time when it didn't last time. Do not tunnel vision on incremental wins when the judge is telling you that you're completely off base.
 - **Stalled**: you've already tried at least one big structural change as above, and the best score still hasn't improved in 3 rounds, and the judge is either blocking you over extremely nitpicky things or asking for improvements that are intractable (e.g. it wants raytracing but you're on a cheap laptop with no GPU). Stop and tell the user why you think you're blocked, and give options for what to do next.

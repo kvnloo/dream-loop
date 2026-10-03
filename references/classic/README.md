@@ -4,6 +4,10 @@ Anshu removed this stack in commit `9bddb90` (“simplify Plus workflow… cheap
 
 **Default remains** the current split: [plus-mode/workflow.md](../plus-mode/workflow.md) and [pro-mode/workflow.md](../pro-mode/workflow.md). Do not load classic and current Plus/Pro workflows in the same run.
 
+## Human review
+
+The shared [human-review contract](../human-review.md) applies to Classic Pro and Classic Plus without importing the simplified workflows or changing the tier rubric. Reuse locked user decisions before work; at checkpoints show the accepted control beside the candidate. Numeric exits mean ready for review, not human acceptance. Human-review gates take precedence over instructions to continue, overhaul, or wrap up; budget exhaustion is a stop, not approval.
+
 ## When to use classic
 
 - User asks for **“Dream Loop Classic”**, **gated judge**, or **asset-first** workflow.

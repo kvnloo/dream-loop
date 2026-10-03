@@ -1,5 +1,9 @@
 # Dream Loop Pro Workflow
 
+## Human review
+
+Follow [human-review.md](../human-review.md) before the first intervention and at review checkpoints. Reuse the user's locked decisions; pass them unchanged to workers. A critic's score never substitutes for human acceptance. Continue within the selected mode's limits only while no human-review gate is waiting.
+
 ## Loop Structure
 
 Prerequisites:
@@ -55,8 +59,8 @@ Unrelated products may reuse this workflow. Follow [../lanes.md](../lanes.md). D
 
 Measure FPS when the product is interactive: `requestAnimationFrame` average over 2 seconds, or Chrome's FPS meter if available. Write `.dream-loop/fps.json` `{ "fps": <number>, "method": "raf-2s" | "chrome-fps" }` ([fps.schema.json](../fps.schema.json)). Do not invent a number if you cannot measure. For `vertical: ad-still`, FPS is optional.
 
-- **score >= 8 and target FPS acceptable**: done! Show the user the latest screenshot and ask if they want more iterations. (`ad-still` may treat FPS as acceptable without a measurement.)
+- **score >= 8 and target FPS acceptable**: ready for human review, not automatically done. Show the review packet and wait for the scoped decision before promotion. (`ad-still` may treat FPS as acceptable without a measurement.)
 - **score >= 8 but target FPS unacceptable**: optimize, aiming for lossless wins first, then optimizations that have minimal visual impact. Re-judge after optimizations to ensure you didn't regress visuals.
 - **Stall approaching**: the best score hasn't improved by a full point in 2 rounds, or the judge has named the same gap 2 times in a row. **Stop nibble. Do not euler-hunt.** Step back and rethink the entire approach and scene, and try to find architectural or big-picture reasons why you're not reaching the target image. It may be that assets are just not good enough, in completely wrong places, the lighting needs to be reworked entirely, the camera is totally wrongly positioned, or other such major issues. Do not make small changes, aim for a dramatic improvement.
 - **Stalled**: you tried the **Stall approaching** large architectural change but it didn't work; the judge still gave the same score or worse. Don't waste tokens trying other dramatic changes. Stop and ask the user to weigh in on if the current state looks good enough or if something is significantly off compared to the target. A later architectural rethink is allowed only after the user says continue.
-- **None of the above**: Continue looping. Do not exit.
+- **None of the above, and no human-review gate is waiting**: Continue looping within the approved scope. A rethink that changes the locked target, accepted controls, or budget needs human review first.

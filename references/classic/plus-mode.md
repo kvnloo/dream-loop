@@ -2,6 +2,10 @@
 
 Important: Dream Loop Plus only means the modifications described in this document. It does not mean you take shortcuts or compromise on the result. Your goal remains to produce the most visually impressive result aligned to the concept, not to prematurely optimize on your own.
 
+## Human review
+
+The shared [human-review contract](../human-review.md) applies to Classic Pro and Classic Plus without importing the simplified workflows or changing the tier rubric. Reuse locked user decisions before work; at checkpoints show the accepted control beside the candidate. Numeric exits mean ready for review, not human acceptance. Human-review gates take precedence over instructions to continue, overhaul, or wrap up; budget exhaustion is a stop, not approval.
+
 Make these workflow modifications for Plus mode:
 - The outer loop should be run by a small, efficient model (e.g. GPT-5.6 Luna xhigh or Terra/Sol, Claude Opus/Sonnet). Use this same model for subagents. If you are a large, expensive model (Astra/Fable-tier) being told to run the loop, stop and ask the user to choose the smaller coordinator, and only proceed if they insist.
 - You own the full loop execution and coordination: plan the asset kit, generate independent assets in parallel, resolve and validate the complete kit, then compose the scene and implement its functionality. Your first goal is to pass Tiers 1 and 2 on your own. You only invoke an Astra-tier model for judging and feedback against the concept. All implementation is done by you or subagents using your model.
