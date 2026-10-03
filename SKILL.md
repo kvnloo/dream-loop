@@ -19,7 +19,7 @@ Your first step is to determine which workflow to use:
 - Plus: [references/plus-mode/workflow.md](references/plus-mode/workflow.md)
 - Pro: [references/pro-mode/workflow.md](references/pro-mode/workflow.md)
 
-After that choice, also read [references/common.md](references/common.md). That is the one shared document both workflows may load.
+After that choice, also read [references/common.md](references/common.md). These notes and the human-review contract below are shared; do not load the other mode's workflow.
 
 Do not read both Plus and Pro workflow documents. They are not inter-compatible.
 
@@ -43,6 +43,10 @@ Record 3D assets in `.dream-loop/assets.json` (see [references/assets.schema.jso
 Record every attempted intervention as an append-only Dream-RSI discovery node in the same `.dream-loop/rounds.jsonl` ledger; rejected and rolled-back branches must remain. See [references/discovery-tree.md](references/discovery-tree.md). Legacy critic/judge round records stay valid.
 
 If the browser tool cannot save a PNG, run [scripts/preview-server.py](scripts/preview-server.py) (`POST /__capture`; side-by-side at `/__compare`). Captures land in `.dream-loop/captures/`.
+
+## Human review (all modes)
+
+Preserve the last human-accepted control, not just the highest critic score. Before the first intervention, read [references/human-review.md](references/human-review.md): reuse existing decisions, lock what must not change, and choose the next meaningful checkpoint. At checkpoints show target/control/candidate media and ask one concrete question. A critic score means ready for review, not human approval. User-reported regressions block promotion; silence and "keep going" are not acceptance. This contract also applies to Classic without mixing judge rubrics.
 
 ## Hard gates
 
