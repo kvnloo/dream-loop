@@ -30,6 +30,10 @@ node --input-type=module -e "import { appendRound } from '/path/to/dream-loop/sc
 
 Plus cheap critic: `{ "score": <0-10>, "blockers": [] }`. Pro judge: rubric `score` + `total` + `blockers` + `fps_ok`.
 
+### Dream-RSI discovery nodes
+
+In addition to the critic/judge round record, append one `discovery_node` for every attempted intervention, including rejected or rolled-back branches. These events share `.dream-loop/rounds.jsonl` but are ignored by legacy `readRounds()`. See [discovery-tree.md](discovery-tree.md) for the schema and invariants.
+
 ## Spend
 
 Warn before a long Fal or token run. Optional `.dream-loop/budget.json`: `{ "maxFalUsd": <number>, "maxRounds": <number> }`. There is no live meter — honor the file if present. `node scripts/fal-batch.mjs check .dream-loop/fal-jobs.json` prints `jobCount`.
