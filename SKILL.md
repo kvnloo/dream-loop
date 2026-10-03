@@ -40,6 +40,8 @@ Create and use a `.dream-loop` folder for working context/files, and gitignore i
 
 Record 3D assets in `.dream-loop/assets.json` (see [references/assets.schema.json](references/assets.schema.json)) before composing the scene.
 
+Record every attempted intervention as an append-only Dream-RSI discovery node in the same `.dream-loop/rounds.jsonl` ledger; rejected and rolled-back branches must remain. See [references/discovery-tree.md](references/discovery-tree.md). Legacy critic/judge round records stay valid.
+
 If the browser tool cannot save a PNG, run [scripts/preview-server.py](scripts/preview-server.py) (`POST /__capture`; side-by-side at `/__compare`). Captures land in `.dream-loop/captures/`.
 
 ## Hard gates
