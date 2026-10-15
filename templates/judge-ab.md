@@ -5,6 +5,9 @@ You have no history. Do not read prior verdicts or implementation reports. Use o
 BRIEF (includes ART STYLE, COPY/INTENT, approved deviations and frozen regions):
 {{BRIEF}}
 
+Canonical scoped OWNER-PREFERENCES (verbatim resolved entries):
+{{OWNER_PREFERENCES}}
+
 View exactly these evidence images with vision tools:
 - TARGET: {{TARGET}}
 - A: {{A}}
