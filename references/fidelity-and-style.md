@@ -72,7 +72,7 @@ current owner restrictions explicit in every judge packet.
 
 The owner's added rule permits AI images to be **projection-painted and baked into
 real mesh textures**; it does not permit a 2D paint-over of the finished render.
-Record this distinction in project scope, never silently broaden old permissions
+Apply the no-final-render-paint-over boundary in this method; a proposed owner revision requires an explicit method/scope change, not a silent exception. Record this distinction in project scope, never silently broaden old permissions
 or upload private imagery. Preserve generator/source/license and prompt lineage.
 
 Paint through camera projection if useful, then bake into explicit material/UV/UDIM

@@ -71,4 +71,6 @@ Read [script contracts](references/scripts.md) before invoking new helpers. Run 
 
 ## Verification
 
+Before dispatch, audit the worker plan against the [handoff checklist](templates/worker-plan-checklist.md). Explicitly include owner-anchor calibration before using fresh rankers, final-density metrics plus delivered-crop audit, and representation permissions. Do not let a compressed plan silently omit these or convert absent evidence into factual deficiencies.
+
 Require immutable input receipts; correct capture identity/density; calibrated gates and protected-state replay; validated fresh-judge evidence; owner checkpoint; explicit current/approval status; complete rejected history; and product-specific runtime checks. Missing evidence means incomplete, not an invented PASS.
