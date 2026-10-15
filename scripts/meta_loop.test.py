@@ -44,6 +44,18 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual([r['mechanism_class'] for r in rows[0]['classification_history']], ['traced_vector','layer_stack'])
         self.assertNotIn('classification_history', a)
 
+    def test_lineage_correction_retains_history_and_rechecks_cycles(self):
+        a = trial('a', parents=['batch-alias'])
+        b = trial('a', event_id='a-final', parents=['b'])
+        rows, errors = m.materialize([a, trial('b'), b, a])
+        self.assertEqual(errors, [])
+        row = next(r for r in rows if r['trial_id']=='a')
+        self.assertEqual(row['parents'], ['b'])
+        self.assertEqual([r['parents'] for r in row['parent_history']], [['batch-alias'], ['b']])
+        self.assertNotIn('parent_history', a)
+        _, errors = m.materialize([a, trial('b', parents=['a']), b])
+        self.assertTrue(any('cycle' in e for e in errors))
+
     def test_event_revision_dedup_and_conflict(self):
         self.assertTrue(hasattr(m, 'materialize'), 'ledger reducer missing')
         a = trial()

@@ -109,7 +109,7 @@ def materialize(events):
                 raise ValueError('cross-lane trial ownership conflict '+trial_id)
             if trial_id in trials:
                 previous = trials[trial_id]
-                for key in ('element', 'parents', 'run_id', 'defect_id'):
+                for key in ('element', 'run_id', 'defect_id'):
                     if row[key] != previous[key]:
                         raise ValueError('immutable trial field changed '+key)
             ids[event_id] = encoded
@@ -117,13 +117,14 @@ def materialize(events):
             materialized = copy.deepcopy(row)
             if trial_id in trials:
                 previous = trials[trial_id]
-                history = copy.deepcopy(previous.get('classification_history', []))
-                if previous['mechanism_class'] != row['mechanism_class']:
-                    if not history:
-                        history.append({k: previous[k] for k in ('event_id', 'mechanism_class')})
-                    history.append({k: row[k] for k in ('event_id', 'mechanism_class')})
-                if history:
-                    materialized['classification_history'] = history
+                for field, history_key in (('mechanism_class', 'classification_history'), ('parents', 'parent_history')):
+                    history = copy.deepcopy(previous.get(history_key, []))
+                    if previous[field] != row[field]:
+                        if not history:
+                            history.append(copy.deepcopy({k: previous[k] for k in ('event_id', field)}))
+                        history.append(copy.deepcopy({k: row[k] for k in ('event_id', field)}))
+                    if history:
+                        materialized[history_key] = history
             trials[trial_id] = materialized
         except (ValueError, TypeError, KeyError) as e:
             errors.append(str(e))
