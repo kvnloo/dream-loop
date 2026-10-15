@@ -13,7 +13,9 @@ Owner's style reading: <confirmed interpretation or open question>
 | <element + pixel box> | <COPY/INTENT> | <observable> | <observable> | <checkable> | <owner choice> |
 
 ## Authority and scope
-- PREFERENCES revision: <path/hash>; allowed/forbidden methods: <list>
+- Canonical OWNER-PREFERENCES revision: <path/hash>; paste resolved applicable entries verbatim below, including negative examples and supersedes.
+- Allowed/forbidden methods: <list>; exemplar/style gate receipt: <owner decision>
+- Receiver/fixture preflight: <receipt>; evidence image/crop budget: <brief constraint, not platform cap>
 - Protected state/regions: <exact fields and masks>; permitted exceptions: <receipt>
 - Gate mode: <hard structure / owner-authorized local diagnostic>; calibration: <suite>
 - Separate scene/UI/behavior/performance requirements: <list>

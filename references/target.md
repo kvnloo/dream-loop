@@ -9,4 +9,4 @@
 7. Re-dream only at an explicit checkpoint. Supply the current artifact as conditioning, state protected elements and desired new direction, preserve the old target and ledger, show alternatives, obtain a target revision decision, then restart baseline calibration. Re-dreaming is not a way to make a failing candidate win against a moving target.
 8. Distinguish representation permissions: reference analysis/conditioning; approved projected artwork; relightable material; final compositing. No one permission implies the others. Keep private stills local unless external upload is explicitly authorized. “No downloaded assets” is not automatic permission for paid image-to-3D or public uploads.
 
-Use [BRIEF](../templates/BRIEF.md) and [PREFERENCES](../templates/PREFERENCES.md). Target hash + brief revision + owner preferences travel in every lane and judge prompt.
+Use [BRIEF](../templates/BRIEF.md) and canonical [OWNER-PREFERENCES](../templates/OWNER-PREFERENCES.md). Resolve scope and paste current applicable entries verbatim into every brief/judge packet, retaining hash/revision. Complete the [exemplar/style gate](exemplar-and-preflight.md) before full asset work.

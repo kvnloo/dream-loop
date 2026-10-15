@@ -2,6 +2,8 @@
 
 Framing: {{senior art director / lookdev supervisor / phone viewer}}.
 {{BRIEF}}
+Canonical scoped OWNER-PREFERENCES (verbatim resolved entries):
+{{OWNER_PREFERENCES}}
 Review whole frame at intended viewing size and two bounded native detail sheets. State actual evidence resolution and unknowns. Do not read other panel members or prior scores.
 
 For each element give raw PERFECT / MOSTLY_GOOD / NEEDS_WORK / UNKNOWN, concrete visible gap and one next experiment. Rank five changes by perceptual impact per effort, list first-glance artificiality cues and preserved wins. Distinguish appearance from hypotheses about implementation. Verify the entire disputed element before asserting absence.

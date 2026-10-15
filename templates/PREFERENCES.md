@@ -1,4 +1,7 @@
-# Project preferences
+# Project preferences (compatibility checklist)
+
+Use [OWNER-PREFERENCES.md](OWNER-PREFERENCES.md) as the single canonical scoped
+ledger. This older checklist is not a competing source of truth.
 
 Revision / owner receipt: <id>
 Style reading: <owner's words, not agent assumptions>

@@ -5,7 +5,7 @@
 3. Build the smallest coupon plus a one-variable counterfactual. Freeze scale, seed, view, exposure and light; use both neutral diagnostics and the production fixture where useful. Test one mechanism rather than a complete redesign. In UI this is an isolated component in the actual typography/layout environment; in Three.js a material/geometry patch under the same renderer and tone mapping.
 4. Save code, inputs, settings, actual output, measurements and hashes. Inspect the result. Distinguish API/render PASS, mechanism PASS and owner/integration acceptance. A valid optical construction can still be the wrong shape/art style.
 5. Publish the verified mechanism with control, limits and exact dependency versions promptly so lanes can reuse it. Apply only that mechanism to an authorized fixture copy. Re-test actual receiver coverage, final-scale detail and protected deltas in context.
-6. After two failed focused trials, change the hypothesis/representation or ask for owner direction. Do not keep replacing a working library with a new tool because the morphology is wrong.
+6. After two failed focused trials on the same stable defect ID, stop dispatch and ask for owner direction before a third. Present a different representation; renaming hypotheses or parameters does not reset the defect budget. Do not keep replacing a working library with a new tool because the morphology is wrong.
 
 ## Representation and sourcing checks
 

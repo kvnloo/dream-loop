@@ -4,7 +4,10 @@ Role / lane / artifact ID: <ids>; owner: <person>
 Working directory: <absolute discovered product root>
 Read-only inputs: <exact paths + SHA256, selected fixture and target revision>
 Owned output directory: <new directory>; forbidden writes: <source/CURRENT/other lanes>
-Read: <BRIEF + PREFERENCES revision + prior failures + domain recipe>
+Read: <BRIEF + OWNER-PREFERENCES revision + prior failures + domain recipe>
+Paste resolved applicable OWNER-PREFERENCES entries verbatim: <exact scoped entries>
+Defect ID / hypothesis family / failures so far / dispatch-guard receipt: <stable IDs>
+Exemplar gate (native crop, reading, two form hypotheses, negative, coupon, owner): <receipt>
 
 ## One visual hypothesis
 Gap class: <FORM/MATERIAL RESPONSE/LIGHT/ALBEDO/MAPPING/DISPLAY>
@@ -24,6 +27,7 @@ Write progress and checksums after every trial; reserve packaging budget. Resume
 - RESEARCH-NOTES with sources/limitations; one-variable control; actual candidate output.
 - TARGET | baseline | candidate; native interface crops and final-density evidence.
 - Save/reopen identity and repeated-application guards; renderer/capture and actual judge receipts.
+- Pre-judge self-review and stable directive transitions; do not send these to blind judges.
 - Technical / brief / owner status separately; rejected trials and parked features retained.
 - Manifest (fixture/input/code/output hashes), commands/exits, elapsed time, report and READY version.
 Owner checkpoint required after this batch; judge HOLD does not prevent showing it.
