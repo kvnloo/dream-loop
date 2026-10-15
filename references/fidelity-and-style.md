@@ -21,6 +21,8 @@ procedural coordinates and ambiguous source branches require explicit categories
 not fabricated density values. Web/UI equivalents audit CSS/device-pixel scale,
 image intrinsic density, vector/rasterization pipeline and GPU texture limits.
 
+Track **two independent capacities**: output texture texels per final pixel, and original/generated observation pixels per projected final pixel. A huge UV bake can pass the former while failing the latter. A declared viewer tile manifest proves requested dimensions, not tile existence or source fidelity; check delivered tiles and their lineage. A crop qualified at one master density does not qualify a larger master.
+
 Flag camera-projected sources bounded by the reference's own resolution. A 4K
 reference projected onto an 8K render does not become 8K artwork because the bake
 is large. Prefer resolution-independent geometry, bounded-frequency procedural
@@ -83,3 +85,14 @@ off-axis/relighting controls when the deliverable requires them. A genuine bake 
 still contain view-dependent or baked-light artifacts; it is not measured PBR or
 multi-view truth. Never infer roughness/height/normal merely from painted luminance.
 Retain old sources, bake settings, effective consumer identity and native controls.
+
+For multiple paint observations, separate generate/refine/preserve masks, reject
+backfaces and hidden receivers with depth/world-position consistency, and weight
+facing/feather/source density rather than averaging conflicting images blindly.
+Keep raw overlap disagreement. Small UV holes may be repaired within scope; large
+unseen regions remain unknown or explicitly procedural. UV-island adjacency is
+not image-grid adjacency. Hold out an oblique view to expose seams and view-locked
+artifacts; preserve normal/roughness unless a separate mechanism justifies changing
+them. GPU generation and rendering use sequential admitted phases; chunk CPU bakes
+and texture tiles rather than assuming one advertised VRAM figure certifies the
+whole pipeline. Remote generation is not local inference.

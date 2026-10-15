@@ -10,6 +10,10 @@ headroom: <value and filtering/compression reason>; exceptions: <explicit owner 
 |---|---|---|---|---|---|---|
 | <id> | <actual consumer> | <not upscaled dimensions> | <Jacobian/source chain> | <units + method> | <heatmap/crops> | <geometry/procedural/vector/native art> |
 
+Separate source-observation density gate: <original/generated pixels per projected
+final pixel, independent of bake texel capacity; preserve unknowns>
+Viewer tile availability/lineage: <actual files loaded, not only manifest dimensions>
+
 Target pyramid: <manifest; approved master/children hashes; parent boxes/scales,
 overlap/downsample checks; authored versus observed detail; owner approval status>
 Fixed crop suite: <semantic IDs, full-final-density boxes, overscan, valid masks>

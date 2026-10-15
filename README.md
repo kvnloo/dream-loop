@@ -36,7 +36,7 @@ Existing script names/CLI interfaces remain. Legacy Pro and Plus docs and their 
 - Fresh swapped paired comparisons replace history-carrying absolute-score promotion. ≥8/10 alone is not done.
 - Checkpoint after every batch and record every round; a five-round summary is not a substitute.
 - Two failed focused trials trigger a strategy decision; uncalibrated +1 scores cannot justify endless nibbling.
-- Asset sources, models, paid services and projection/paint-over are opt-in according to project preferences, licences and privacy. Legacy suggestions do not authorize external uploads or spending.
+- Asset sources, models, paid services and projection-painted **baked mesh textures** are opt-in according to project preferences, licences and privacy. A 2D paint-over of the finished render is excluded under v2. Legacy suggestions do not authorize external uploads or spending.
 - Script/unit tests verify machinery; actual output and owner/device review verify visuals and behavior.
 
 Retained illustration from upstream:

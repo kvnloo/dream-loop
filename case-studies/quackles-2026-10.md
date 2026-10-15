@@ -37,6 +37,13 @@ objective-leakage and incomplete-history limits. More same-model votes did not f
 the mismatched anti-tiling preference. Stop-rule replay is logged-path truncation,
 not causal off-policy optimization; a checkpoint must not erase later possibilities.
 
+Interim late inputs were also incorporated: `process/fidelity-zoom/run-01` source,
+vector and full-density crop receipts; `process/night-v2/comic-style/{STYLE,RESEARCH-NOTES}.md`;
+`process/ai-texture-paint/RESEARCH.md`. They distinguish requested viewer density
+from real source capacity, analytic new ink from inherited raster softness, AO from
+irradiance, and UV texture capacity from generated-observation capacity. These are
+not final lane reports or independently rerendered qualifications.
+
 ## Detail that remains domain-specific
 
 Keep camera-ray visibility filtering, direct notch/extrude stair edits, measured face flushness, UV Jacobians, projection registration, optical meshes, native hair/ivy APIs and exact material transplants in Blender domain skills. Their old project-specific values are examples, not universal constants. Preserve conflicting failed methods (warped tops, fresh fitted stair boxes, broad reflection sheets, hair-only moss) as negative evidence.
