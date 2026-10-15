@@ -1,62 +1,111 @@
 # dream-loop
 
-By [@anshuc](https://x.com/anshuc). Maintained fork: [kvnloo/dream-loop](https://github.com/kvnloo/dream-loop).
+**An evidence-driven visual iteration method for agents and their owners.**
 
-An agent skill that builds a game, app, or scene with impressive visuals, by creating a closed loop:
+Dream-loop v2 turns “make it look right” into a repeatable process: lock the target and intent, reproduce the baseline, test one hypothesis, inspect real output, and keep only an evidenced improvement. It works across still images, Blender, Three.js, games, UI and interactive products. It is a method and a portable skill pack—not a renderer, an autonomous approval system, or a promise that a good screenshot means a working product.
 
-1. AI "dreams" up a high-quality target screenshot using image generation
-2. AI builds with this target in mind
-3. A separate AI critic compares the live screenshot to the target and provides feedback
-4. AI loops back to step 2 until the critic is satisfied
-5. Optionally, AI loops back to step 1 and dreams up an even better target based on the current state.
+Maintained by Kevin ([kvnloo](https://github.com/kvnloo)). Start with [SKILL.md](SKILL.md).
 
-## Installation
+## What v2 does
 
-Upstream: `npx skills add achimala/dream-loop`
+- **Owner gates:** explicit COPY versus INTENT, approved deviations, scoped preferences, exemplar approval, and a visible checkpoint after every batch. Technical preservation, brief compliance and owner acceptance are separate decisions.
+- **Calibrated critics:** structure before polish; fresh blind A/B judgments with swapped sides; owner-labelled anchors, ties and abstention. Scores and votes are evidence, never release permission.
+- **Max-zoom fidelity:** final-density native crops, source-texel coverage and delivered-image audits. Upscaling is not recovered detail. Authorized projection-painted textures must be baked onto real meshes, not substituted as a paint-over of the final render.
+- **Discovery tree:** append-only, parent-linked attempts—including rejects and rollbacks—with artifact hashes, uncertainty and costs. Legacy ledger readers still work. This is a history foundation, not a shipped replay-policy optimizer.
+- **Domain packs:** renderer/capture, runtime, performance and style contracts for different products; isolated component lanes, deterministic integration, protected regions and variant propagation.
+- **Bounded iteration:** a stable defect ledger blocks a third focused attempt after two failures until the owner chooses a new direction.
 
-This maintained fork: `npx skills add kvnloo/dream-loop`, or clone into your agent's skills directory, or paste the link into your agent and tell it to figure it out.
+## Install
 
-## Drop into Hermes
+Review the checkout before giving an agent access to its scripts. Install the **whole repository**, not just SKILL.md: references, templates and scripts are part of the contract. Use one active copy named `dream-loop` per agent scope. Do not overwrite an existing installation without reviewing and backing it up.
 
-1. Clone this repo into a Hermes skills dir, e.g. `~/.hermes/skills/software-development/dream-loop` or a profile `skills/software-development/dream-loop`.
-2. Confirm `SKILL.md` is at the skill root (Hermes loads that file).
-3. Product work stays in **that product’s** gitignored `.dream-loop/` (copy `templates/meta.md` there). Never merge other products’ worktrees or stills.
-4. Lock one frame (a close-up or facility hero), one camera, one capture. Each round: overlay + `scripts/crop_gate.py` (exit ≠ 0 skips lighting/materials judging; continue with a camera or massing action). Then a **fresh** judge child with the verbatim prompt in `references/hard-gates.md`.
-5. One change class per round. Stall if best score is not +1 in 2 rounds — ask the user; do not nibble.
-6. Progress is MEDIA (target + capture + overlay), not a status paragraph.
-7. Do not git-track sqlite under `.dream-loop/`. Do not TDD the render.
+The commands below are POSIX shell examples for Linux/macOS (or WSL). On Windows, clone/copy the complete directory into the equivalent skill directory. Python helpers are portable; host-specific capture/model tooling still needs a separate preflight.
 
-This fork’s gates live in `references/hard-gates.md`.
+**Release availability:** this v2 change is prepared locally, not yet published. After it is merged, the default clone below installs v2. Before merge, use a reviewed local v2 checkout, or the feature branch only after its owner publishes it; do not assume remote `main` already contains v2. Check `version: 2.0.0` in SKILL.md.
 
-## Prerequisites
+### Hermes Agent
 
-You need an AI agent with:
+Choose the **active profile's** home, not another profile. In a shell for that profile, with `HERMES_HOME` explicitly set to its directory:
 
-- access to image generation, either built-in (e.g. Codex, Grok) or via API (e.g. give it a Gemini API key)
-- vision input
-- subagents (optional but strongly preferred)
+```sh
+mkdir -p "${HERMES_HOME:?Set HERMES_HOME to the active profile first}/skills/creative"
+git clone https://github.com/kvnloo/dream-loop.git "$HERMES_HOME/skills/creative/dream-loop"
+```
 
-Install Blender if you want custom 3D modeling. The Blender MCP or scripting interface is preferred to computer use; it produces better results.
+Alternatively, link a reviewed local checkout into that location, or add it to `skills.external_dirs` using `hermes config set` while preserving existing entries. Follow the [Hermes skills documentation](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills/#external-skill-directories). Start a fresh session and load `/dream-loop`; ask `skill_view(name="dream-loop")` to verify the source path and version.
 
-At the moment this is only tested with GPT-6 Astra in Codex. Other strong models like Claude Fable 5.1 can likely work too.
+**Name collision:** the official optional skill is also `dream-loop` / `creative/dream-loop`; `creative-dream-loop` is its documentation slug, not a separate namespace. Project/local copies can shadow external copies. Explicitly choose one; do not rely on scan order or install two competing policies. External directories are writable when filesystem permissions permit—they are not a sandbox.
 
-## Example
+### Claude Code
 
-Prompt:
-> Build me a graphics demo: isometric camera, voxel-ish art style with realistic shading and reflective wet floors, a character in an interesting scene. Fantasy setting (think Elden Ring, Diablo). Three.js in browser, >60fps. Don't download assets. Time limit of 1 hour. Controls: click to move the character, camera lazy-follows; drag to rotate camera; scroll to zoom in/out. No gameplay for now. World should feel alive: motion, animations, subtle environmental behaviors. Area around player should look expansive, but only allow movement in a limited space. No need to confirm the art with me or ask questions, just go!
+Install for your user:
 
-GPT-6 Astra on high effort in Codex:
+```sh
+mkdir -p "$HOME/.claude/skills"
+git clone https://github.com/kvnloo/dream-loop.git "$HOME/.claude/skills/dream-loop"
+```
 
-![Vesper demo: an isometric fantasy scene](assets/vesper-preview.gif)
+Or clone into `.claude/skills/dream-loop` inside a product repository for project scope. Start Claude Code and invoke `/dream-loop`. See [Claude Code skills](https://code.claude.com/docs/en/skills). Read SKILL.md and resolve its helper paths relative to the skill directory, not the product working directory.
 
-[Try the live demo](https://dream-loop-demo.anshu.dev)
+### Codex
 
-## Classic workflow
+Install for your user:
 
-The [pre-simplify gated judge + asset-first loop](references/classic/README.md) lives under `references/classic/` (restored from upstream git history). Use it when you want stricter iteration than the default Plus/Pro split. Say **Dream Loop Classic** in your prompt.
+```sh
+mkdir -p "$HOME/.agents/skills"
+git clone https://github.com/kvnloo/dream-loop.git "$HOME/.agents/skills/dream-loop"
+```
 
-## Contributing
+Or use `.agents/skills/dream-loop` inside a product repository. Codex supports symlinked skill folders too. Select it with `/skills` or `$dream-loop`; restart if it does not appear. See [Codex skills](https://developers.openai.com/codex/skills/).
 
-This fork welcomes PRs at [kvnloo/dream-loop](https://github.com/kvnloo/dream-loop). Please still credit Anshu as the original author.
+The method is harness-independent. Translate Hermes tool names to your host's equivalents. The optional `ab_judge.py --execute` adapter specifically requires a working Hermes CLI; its default prepare-only output can be used to run fresh judges manually in another harness. Verify actual vision delivery and model availability; installation alone does not qualify either.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). If you open a PR, please provide example results produced by the skill when the change could affect visual quality, to ensure the changes don't regress performance.
+## First run
+
+1. Supply the exact target, current artifact, authorized scope and capture/viewer path. Existing targets are not regenerated without permission.
+2. Resolve owner preferences into [BRIEF](templates/BRIEF.md), freeze inputs and reproduce a no-change baseline.
+3. Follow [the core procedure](SKILL.md), select a [domain pack](references/domain-packs.md), and use [helper contracts](references/scripts.md) for commands.
+4. Store working evidence in the **product's** gitignored `.dream-loop/`, not inside this installed skill. Preserve every attempt; CURRENT is explicit selection, not approval.
+
+## Pack layout
+
+| Location | Purpose |
+| --- | --- |
+| [SKILL.md](SKILL.md) | Default method and reference index |
+| [references/](references/) | Target/style, gates, critics, owner loop, fidelity, research, provenance, domains and evaluation |
+| [templates/](templates/) | Briefs, preferences, worker packets, judge prompts, selectors and ledger schemas |
+| [scripts/](scripts/) | Offline image helpers, schema/lint tests, discovery ledger, optional Fal and capture utilities |
+| [Compatibility index](references/compatibility.md) | Retained Classic/Pro/Plus, schemas, onboarding, capture and tiled mesh tools |
+| [Quackles case study](case-studies/quackles-2026-10.md) | Provenance and limits of one application, not a required template |
+| [RECONCILE.md](RECONCILE.md) | File-by-file accounting of fork-main capabilities and retired policies |
+
+## Tests
+
+Python 3.10+ and Node 18+ are required. From the checkout, create an isolated Python environment and install the test dependencies:
+
+```sh
+python -m venv .venv
+. .venv/bin/activate
+python -m pip install -r scripts/requirements-test.txt
+python scripts/run_tests.py
+node --test scripts/*.test.mjs
+python scripts/lint_skill.py
+```
+
+The runner executes every `*.test.py` and `*.test.mjs` plus the skill/link/schema/syntax lint, preserving each exit status. `--receipt PATH.json` writes a new receipt and refuses to overwrite one. Tests use synthetic fixtures and local HTTP; no paid API calls or real visual-quality claims. Live rendering, model quality, target-family calibration, interaction and owner approval require separate evidence.
+
+## Compatibility
+
+V2 is the default; Classic, Pro and Plus are opt-in historical orchestration recipes, not policies to mix together. Existing script paths and ledger APIs remain available. Owner intent and permissions supersede literal-pixel demands, default spending, model-tier assumptions and score-only promotion. A five-round summary does not replace per-batch checkpoints. Legacy asset manifests, FPS receipts, budget brakes and compare/capture tooling remain useful; see [compatibility](references/compatibility.md) and [v2.0.0 changes](CHANGELOG.md).
+
+## Credits and license
+
+Dream-loop grew from [Anshu Chimala's original dream-loop](https://github.com/achimala/dream-loop). We retain its history, original copyright notice, optional historical recipes and illustration. Kevin (kvnloo), with Hermes Agent, developed the project-agnostic v2 method and reconciliation. This is an independently maintained project, currently hosted in that GitHub fork network; it does not imply upstream endorsement.
+
+The discovery-history design credits Tong Zheng et al., [**Dream-RSI: Recursive Self-Improvement through Evolving Worlds**](https://arxiv.org/abs/2609.14858), arXiv:2609.14858. This repository implements an event-sourced ledger inspired by that work, not the paper's complete system or reported results. The citation is not a license grant for paper code or datasets; none are vendored here.
+
+[MIT licensed](LICENSE). The original `Copyright (c) 2026 Anshu Chimala` notice and permission text are retained unchanged. Upstream is also MIT, compatible with this continued MIT distribution. Keep that notice in copies or substantial portions; check separate licenses for third-party assets and services.
+
+![Original Vesper scene](assets/vesper-preview.gif)
+
+[Original demo](https://dream-loop-demo.anshu.dev). This inherited illustration is **not** a v2 evaluation result. See [CONTRIBUTING.md](CONTRIBUTING.md) for evidence requirements.

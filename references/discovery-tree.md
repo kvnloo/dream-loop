@@ -1,5 +1,10 @@
 # Dream-RSI discovery tree
 
+Implementation and original tests imported from `kvnloo/dream-loop` commit
+`928a3510b2a1410312b84b1c50f79de117359165` (MIT). Preserve its v1 API.
+Use one serialized writer: validation plus append is not a multiwriter transaction.
+V2 evidence/unknown-cost fields live in a separate linked sidecar; see [evals](evals.md).
+
 Dream Loop keeps the full search history in the existing append-only `.dream-loop/rounds.jsonl` ledger. Legacy Plus/Pro judge rows remain unchanged. Dream-RSI adds typed `discovery_node` events beside them.
 
 A failed branch is evidence. Do not delete rejected or rolled-back nodes.

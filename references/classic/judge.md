@@ -1,5 +1,7 @@
 ## Judge
 
+> **V2 compatibility record.** [The v2 core](../../SKILL.md) is authoritative. This opt-in historical recipe preserves asset manifests, capture/performance receipts, gated rubrics and quota brakes; it is not a second default. Owner-approved style and COPY/INTENT, explicit asset/service permissions, calibrated blind critics, per-batch owner checkpoints and the two-failed-trial dispatch guard override contrary advice below. Historical model/subscription names, prices and fixed time/quota limits are examples, not current availability or permission. Never infer consent to upload/spend from a configured key, bypass a no-download preference, replace a target, prohibit an approved style/Blender method, or declare done on a score alone. Do not combine Classic, Pro and Plus orchestration in one run.
+
 Judging should ideally be done by a fresh subagent with a clean context each time, to keep it objective and cheap.
 
 The judge should be given the latest live screenshot, the concept image, and (from round 2 on) the previous round's screenshot and verdict, and this prompt:

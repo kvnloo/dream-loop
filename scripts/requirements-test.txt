@@ -1,0 +1,4 @@
+Pillow>=9.1
+numpy>=1.23
+PyYAML>=6
+jsonschema[format]>=4.18

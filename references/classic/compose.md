@@ -1,5 +1,7 @@
 ## Compose and self-review
 
+> **V2 compatibility record.** [The v2 core](../../SKILL.md) is authoritative. This opt-in historical recipe preserves asset manifests, capture/performance receipts, gated rubrics and quota brakes; it is not a second default. Owner-approved style and COPY/INTENT, explicit asset/service permissions, calibrated blind critics, per-batch owner checkpoints and the two-failed-trial dispatch guard override contrary advice below. Historical model/subscription names, prices and fixed time/quota limits are examples, not current availability or permission. Never infer consent to upload/spend from a configured key, bypass a no-download preference, replace a target, prohibit an approved style/Blender method, or declare done on a score alone. Do not combine Classic, Pro and Plus orchestration in one run.
+
 After the asset-readiness gate passes, look at the concept art and do your best to compose and implement it in one go, and make that first pass count across every tier of the score ladder. Try to nail the composition, textures, lighting, details. Use the validated asset kit for all visible models and surfaces. Code may assemble and instance assets, drive controls and animation, and render lighting, water, particles, or other effects; it must not substitute procedural models or textures for unresolved assets.
 
 Write intermediate files/plans to `.dream-loop` to keep yourself on track.

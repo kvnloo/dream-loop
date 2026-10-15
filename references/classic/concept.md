@@ -1,5 +1,7 @@
 ## Concept art
 
+> **V2 compatibility record.** [The v2 core](../../SKILL.md) is authoritative. This opt-in historical recipe preserves asset manifests, capture/performance receipts, gated rubrics and quota brakes; it is not a second default. Owner-approved style and COPY/INTENT, explicit asset/service permissions, calibrated blind critics, per-batch owner checkpoints and the two-failed-trial dispatch guard override contrary advice below. Historical model/subscription names, prices and fixed time/quota limits are examples, not current availability or permission. Never infer consent to upload/spend from a configured key, bypass a no-download preference, replace a target, prohibit an approved style/Blender method, or declare done on a score alone. Do not combine Classic, Pro and Plus orchestration in one run.
+
 If a target image is supplied, use it unchanged. This concept-generation procedure applies only when no target image exists or the user explicitly requests a revised target. A fresh implementation does not require a fresh concept.
 
 The concept is a realistic, high-quality, impressive target: the look of a current AAA game running in real time. Physically plausible materials (wet stone, brushed metal, cloth, glass) with real roughness and normal detail, correct proportions, atmosphere (fog, haze, rain, dust, volumetric light), cinematic lighting with a clear key and rich shadows. It should NOT be stylized or an artistic rendition, it should look like a true screenshot of the ideal result.

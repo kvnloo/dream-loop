@@ -1,5 +1,7 @@
 # 3D: what actually works
 
+> **V2 compatibility record.** Read SKILL.md and references/loop-and-gates.md at the skill root first. Current owner preferences, COPY/INTENT, three separate gates and batch checkpoints override historical literal-match, model-ranking and score-only promotion advice below. Legacy Pro/Plus are opt-in, mutually exclusive orchestration recipes; external uploads/spending still require authorization. Historical rules remain for reproducibility, not as a competing v2 policy.
+
 Shared process for any product using this skill. No product names, no scores, no stills. If a round taught something, write the **rule** here, not the round id.
 
 Read this after `SKILL.md` / Pro workflow. Product skills (`dream-loop-cycles`, garden, house) add isolation only. They do not rewrite the judge.
@@ -58,6 +60,6 @@ BlenderAlchemy (ECCV 2024) is VLM **editing** a live scene. Closer to this loop 
 
 ## How to add a lesson
 
-One imperative rule + why. No round numbers. Patch this file on the skill branch (or main once merged). Profile skills may **point** here; they must not fork a second rubric.
+One imperative rule + why. No round numbers. Patch this file on the current feature branch (or main once merged). Profile skills may **point** here; they must not fork a second rubric.
 
 Lessons file (camera-projected textures, sharpness, stone): [lessons-quackles-2026-10.md](lessons-quackles-2026-10.md).
