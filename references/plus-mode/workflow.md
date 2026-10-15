@@ -1,5 +1,7 @@
 # Dream Loop Plus Workflow
 
+> **V2 compatibility record.** Read SKILL.md and references/loop-and-gates.md at the skill root first. Current owner preferences, COPY/INTENT, three separate gates and batch checkpoints override historical literal-match, model-ranking and score-only promotion advice below. Legacy Pro/Plus are opt-in, mutually exclusive orchestration recipes; external uploads/spending still require authorization. Historical rules remain for reproducibility, not as a competing v2 policy.
+
 ## Note on orchestrator model
 
 This workflow is designed not to be run by very large models like GPT-6 Astra or Claude Fable. If you are such a model, stop, and ask the user to switch to a smaller model (e.g. GPT-5.6 Luna on xhigh reasoning, or Claude Sonnet/Opus). Only proceed if they insist.

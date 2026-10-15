@@ -1,52 +1,44 @@
-# dream-loop
+# dream-loop v2
 
-By [@anshuc](https://x.com/anshuc).
+A project-agnostic visual iteration skill: lock intent and target, capture real output, test one hypothesis, inspect fresh evidence, and checkpoint with the owner. Covers stills, Blender scenes, Three.js/games and UI without treating screenshots as proof of functionality.
 
-An agent skill that builds a game, app, or scene with impressive visuals, by creating a closed loop:
+Original dream-loop by [Anshu / @anshuc](https://x.com/anshuc), upstream [achimala/dream-loop](https://github.com/achimala/dream-loop). This [kvnloo fork](https://github.com/kvnloo/dream-loop) adds methods distilled with Kevin (kvnloo). MIT; original attribution and helper interfaces retained.
 
-1. AI "dreams" up a high-quality target screenshot using image generation
-2. AI builds with this target in mind
-3. A separate AI critic compares the live screenshot to the target and provides feedback
-4. AI loops back to step 2 until critic is satisfied
-5. Optionally, AI loops back to step 1 and dreams up an even better target based on the current state.
+## Load and use
 
-## Drop into Hermes
+Install this repository as one `dream-loop` skill root in the active Hermes profile's skills tree (SKILL.md at root). Resolve the active profile first; do not edit another profile. See the current [Hermes skills documentation](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills/) for supported installation paths/commands. A local checkout can be placed or linked under that active tree after checking loader support; start a fresh session and verify `skill_view(name="dream-loop")` resolves this checkout/version. Do not simultaneously preload the optional `creative-dream-loop` workflow: choose one orchestrator, retain other skills only as domain packs.
 
-1. Clone this repo into a Hermes skills dir, e.g. `~/.hermes/skills/software-development/dream-loop` or a profile `skills/software-development/dream-loop`.
-2. Confirm `SKILL.md` is at the skill root (Hermes loads that file).
-3. Product work stays in **that product’s** gitignored `.dream-loop/` (copy `templates/meta.md` there). Never merge other products’ worktrees or stills.
-4. Lock one frame (a close-up or facility hero), one camera, one capture. Each round: overlay + `scripts/crop_gate.py` (exit ≠ 0 skips lighting/materials judging; continue with a camera or massing action). Then a **fresh** judge child with the verbatim prompt in `references/hard-gates.md`.
-5. One change class per round. Stall if best score is not +1 in 2 rounds — ask the user; do not nibble.
-6. Progress is MEDIA (target + capture + overlay), not a status paragraph.
-7. Do not git-track sqlite under `.dream-loop/`. Do not TDD the render.
+Other agents can consume SKILL.md directly. `npx skills add achimala/dream-loop` installs UPSTREAM, not this fork's v2; choose the repository/revision intentionally. No automatic install or profile changes are performed by this repository.
 
-`npx skills add achimala/dream-loop` still works for non-Hermes agents. This fork’s gates live in `references/hard-gates.md`.
+## Pack structure
 
-## Prerequisites
+- [SKILL.md](SKILL.md): core loop, hard rules and reference index.
+- `references/`: target/style, gates, critics, owner loop, component lanes, research, variants, provenance, evaluation and domain contracts.
+- `templates/`: brief/preferences, delegation, judge prompts, current selector, discovery ledger schema and integration adapter skeleton.
+- `scripts/`: retained upstream helpers plus portable tiling, validation/aggregation, comparison and swapped A/B runner.
+- [Quackles case study](case-studies/quackles-2026-10.md): provenance and limits, not a template product.
 
-You need an AI agent with:
+Use product-owned gitignored `.dream-loop/` or an assigned artifact directory. Keep input originals immutable and every attempt discoverable. Do not commit private renders, process databases or credentials here.
 
-- access to image generation, either built-in (e.g. Codex, Grok) or via API (e.g. give it a Gemini API key)
-- vision input
-- subagents (optional but strongly preferred)
+## Run tests
 
-Install Blender if you want custom 3D modeling. The Blender MCP or scripting interface is preferred to computer use; it produces better results.
+Through Hermes `terminal(command="python scripts/run_tests.py", workdir=<checkout>)`.
+Python 3.10+ with Pillow, NumPy, PyYAML and jsonschema; Node 18+ for retained Fal tests. Tests are offline and use temporary synthetic fixtures, not visual-production claims. See [script contracts](references/scripts.md).
 
-At the moment this is only tested with GPT-6 Astra in Codex. Other strong models like Claude Fable 5.1 can likely work too.
+## Compatibility and intentional v2 changes
 
-## Example
+Existing script names/CLI interfaces remain. Legacy Pro and Plus docs and their asset recipes remain accessible, but do not mix those two orchestration modes. V2 is the default process and overrides historical policy where it conflicts:
 
-Prompt:
-> Build me a graphics demo: isometric camera, voxel-ish art style with realistic shading and reflective wet floors, a character in an interesting scene. Fantasy setting (think Elden Ring, Diablo). Three.js in browser, >60fps. Don't download assets. Time limit of 1 hour. Controls: click to move the character, camera lazy-follows; drag to rotate camera; scroll to zoom in/out. No gameplay for now. World should feel alive: motion, animations, subtle environmental behaviors. Area around player should look expansive, but only allow movement in a limited space. No need to confirm the art with me or ask questions, just go!
+- Owner-approved COPY/INTENT and locked deviations supersede “every pixel identical.” The old judge rubric remains verbatim for reproducibility, not authority to change owner choices.
+- Structure gates remain hard unless an owner-authorized revision explicitly makes them diagnostic. After PASS, optimize appearance, not the gate fraction.
+- Fresh swapped paired comparisons replace history-carrying absolute-score promotion. ≥8/10 alone is not done.
+- Checkpoint after every batch and record every round; a five-round summary is not a substitute.
+- Two failed focused trials trigger a strategy decision; uncalibrated +1 scores cannot justify endless nibbling.
+- Asset sources, models, paid services and projection/paint-over are opt-in according to project preferences, licences and privacy. Legacy suggestions do not authorize external uploads or spending.
+- Script/unit tests verify machinery; actual output and owner/device review verify visuals and behavior.
 
-GPT-6 Astra on high effort in Codex:
+Retained illustration from upstream:
 
-![Vesper demo: an isometric fantasy scene](assets/vesper-preview.gif)
+![Vesper isometric fantasy scene](assets/vesper-preview.gif)
 
-[Try the live demo](https://dream-loop-demo.anshu.dev)
-
-## Contributing
-
-I'd love to hear feedback, see results, and accept edits to the skill.
-
-If you open a PR, please provide example results produced by the skill, to ensure the changes don't regress performance.
+[Original demo](https://dream-loop-demo.anshu.dev). This illustration is not a v2 evaluation result. Contribute new rules with controls, failure cases and transfer evidence, not just attractive examples.
