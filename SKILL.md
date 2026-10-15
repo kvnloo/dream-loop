@@ -56,7 +56,7 @@ Read [script contracts](references/scripts.md) before invoking new helpers. Run 
 
 ## Reference index
 
-- [Helper contracts](references/scripts.md) · [Discovery tree](references/discovery-tree.md) · [Final-density fidelity/style](references/fidelity-and-style.md)
+- [Helper contracts](references/scripts.md) · [Discovery tree](references/discovery-tree.md) · [Meta-learning runner](references/meta-learning.md) · [Final-density fidelity/style](references/fidelity-and-style.md)
 - [Compatibility, legacy schemas and tools](references/compatibility.md) · [Classic](references/classic/README.md) · [Image onboarding](references/onboarding.md) · [Fal](references/fal.md) · [Tiled mesh maps](references/tiled-mesh.md)
 - [Target and style](references/target.md) · [Loop and gates](references/loop-and-gates.md) · [Critics](references/critics.md)
 - [Owner loop](references/owner-loop.md) · [Component lanes](references/component-lanes.md) · [Research first](references/research-first.md)
