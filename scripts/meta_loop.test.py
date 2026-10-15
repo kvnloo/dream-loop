@@ -34,6 +34,16 @@ class LedgerTests(unittest.TestCase):
         rows, errors = m.materialize([a,b])
         self.assertTrue(any('cycle' in e for e in errors))
 
+    def test_classification_revision_preserves_history_and_one_trial(self):
+        a = trial('a', mechanism_class='traced_vector')
+        b = trial('a', event_id='a-v2', mechanism_class='layer_stack')
+        rows, errors = m.materialize([a,b,a])
+        self.assertEqual(errors, [])
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]['mechanism_class'], 'layer_stack')
+        self.assertEqual([r['mechanism_class'] for r in rows[0]['classification_history']], ['traced_vector','layer_stack'])
+        self.assertNotIn('classification_history', a)
+
     def test_event_revision_dedup_and_conflict(self):
         self.assertTrue(hasattr(m, 'materialize'), 'ledger reducer missing')
         a = trial()
@@ -89,6 +99,13 @@ class LearnerTests(unittest.TestCase):
         result = m.plan(rows, 'night-banner', {})
         self.assertFalse(any(x['action']=='new_mechanism' and x['mechanism_class']=='traced_vector' for x in result['batch']))
         self.assertEqual(result.get('pending_trial_ids'), ['a'])
+
+    def test_learned_best_must_be_an_observed_winner_not_prior_only(self):
+        rows = [trial('win', element='night-stone', owner_reaction={'status':'approved','receipt':'o:win'})]
+        rows += [trial('fail'+str(i), element='night-stone', defect_id='different'+str(i),
+                       owner_reaction={'status':'rejected','receipt':'o:'+str(i)}) for i in range(4)]
+        result = m.plan(rows, 'night-stone', {})
+        self.assertEqual(result['learned_best'], 'geometry')
 
     def test_plateau_uses_observation_time_not_filename_order(self):
         rows = [trial('later-win', timestamp='2026-10-15T15:00:00Z', owner_reaction={'status':'approved','receipt':'o:3'}),

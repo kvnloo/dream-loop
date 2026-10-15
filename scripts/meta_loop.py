@@ -2,6 +2,7 @@
 """Local, evidence-conservative Blender meta-learning loop. No scene promotion."""
 from __future__ import annotations
 import argparse
+import copy
 from collections import defaultdict
 from datetime import datetime, timezone
 import hashlib
@@ -108,12 +109,22 @@ def materialize(events):
                 raise ValueError('cross-lane trial ownership conflict '+trial_id)
             if trial_id in trials:
                 previous = trials[trial_id]
-                for key in ('element', 'mechanism_class', 'parents', 'run_id', 'defect_id'):
+                for key in ('element', 'parents', 'run_id', 'defect_id'):
                     if row[key] != previous[key]:
                         raise ValueError('immutable trial field changed '+key)
             ids[event_id] = encoded
             owners[trial_id] = row['lane']
-            trials[trial_id] = row
+            materialized = copy.deepcopy(row)
+            if trial_id in trials:
+                previous = trials[trial_id]
+                history = copy.deepcopy(previous.get('classification_history', []))
+                if previous['mechanism_class'] != row['mechanism_class']:
+                    if not history:
+                        history.append({k: previous[k] for k in ('event_id', 'mechanism_class')})
+                    history.append({k: row[k] for k in ('event_id', 'mechanism_class')})
+                if history:
+                    materialized['classification_history'] = history
+            trials[trial_id] = materialized
         except (ValueError, TypeError, KeyError) as e:
             errors.append(str(e))
     # Keep unresolved external parents, but quarantine cycles and descendants.
@@ -171,7 +182,8 @@ def judge_outcome(row, calibrations):
 def mechanism_key(row):
     # Preserve the producer token; only the analytical grouping distinguishes
     # explicitly authored vector synthesis from tracing observed source contours.
-    if (row['lane'] == 'banner-generator' and row['mechanism_class'] == 'traced_vector'
+    if (row['lane'] == 'banner-generator'
+            and (row['mechanism_class'] == 'traced_vector' or row.get('parameters', {}).get('family') in ('H','D','M','F'))
             and row.get('parameters', {}).get('new_detail') == 'authored deterministic vectors; not recovered target strokes'):
         return 'generated_vector'
     return row['mechanism_class']
@@ -260,14 +272,17 @@ def plan(rows, element, calibrations, exploration_slots=2):
             if p.get('n', 0):
                 return p['mean'], p['n']
         return 0.5, 0
-    best = max(candidates, key=rank)
+    best = None
     # Sparse/no accepted history means test form, not claim a learned best.
     preferred = (['traced_vector', 'procedural_shader', 'layer_stack', 'geometry']
                  if 'banner' in element else ['geometry', 'layer_stack', 'procedural_shader', 'projection_paint'])
     explored = sorted([c for c in candidates if c not in inflight], key=lambda k: (stats.get(k, {}).get('trials', 0),
                      preferred.index(k) if k in preferred else len(preferred), k))
     qualified = [r for r in scoped if eligible_recipe(r, calibrations)]
-    winners = [r for r in scoped if owner_outcome(r) == 1 or judge_outcome(r, calibrations) == 1]
+    winners = [r for r in scoped if mechanism_key(r) in candidates and r['status'] == 'completed'
+               and (owner_outcome(r) == 1 or (owner_outcome(r) is None and judge_outcome(r, calibrations) == 1))]
+    if winners:
+        best = max({mechanism_key(r) for r in winners}, key=lambda key: (rank(key), key))
     batch = []
     for mechanism in explored[:exploration_slots]:
         batch.append(dict(action='new_mechanism', mechanism_class=mechanism, parents=[],

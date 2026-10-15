@@ -1,6 +1,6 @@
 # Live meta-learning events — v1
 
-Append one complete JSON object + newline to `meta-loop/events/<lane>.jsonl`. One writer per lane. Never rewrite a trial; append a revision with a NEW event_id and the SAME trial_id. Later revisions replace the materialized trial, not its history. Finish each write before announcing it. Unknown is null, never zero/PASS. Files are private local evidence.
+Append one complete JSON object + newline to `meta-loop/events/<lane>.jsonl`. One writer per lane. Never rewrite a trial; append a revision with a NEW event_id and the SAME trial_id. Later revisions replace the materialized trial, not its history. Element/run/parents/stable-defect identity stays fixed. A mechanism-label correction is retained as classification history; a substantively new intervention needs a new trial_id. Finish each write before announcing it. Unknown is null, never zero/PASS. Files are private local evidence.
 
 This is an intake extension of Dream-loop discovery-tree, NOT a replacement for legacy rounds.jsonl. `trial_id` maps to discovery `node_id`, `parents[0]` to `primary_parent`, remaining parents to `dependency_ids`. Full discovery_observation v2 may carry the same payload in optional `meta_trial`. Existing observation and v1 node contracts remain unchanged. Partial historical records stay intake records: missing cohort hashes are NOT fabricated.
 
