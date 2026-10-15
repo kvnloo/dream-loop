@@ -22,6 +22,21 @@ This is a historical case, not a default subject, color palette, camera, model c
 | Finished high-resolution masters became stale after scene revisions | Cache lineage and invalidation by approved artifact hash | same lane5 trace |
 | Desktop/emulated checks disagreed with owner phone feel | Separate screenshot fidelity from real-device interaction/performance gates | `process/blog-2026-10-15/trace/lane1-site.md` |
 
+## Added owner rules and evaluation
+
+The owner subsequently specified max-zoom source-density auditing, coherent target
+pyramids, full-final-density crop gates, and separating print/grain/ink/cel/faceting
+from material response. AI artwork painted and baked onto actual mesh textures is
+allowed; a 2D paint-over of the final render is not. These are process/representation
+requirements, not evidence that every existing asset meets them. See
+[fidelity and style](../references/fidelity-and-style.md).
+
+`process/blender-mastery/evals/REPORT.md` reports the retrospective three-pair
+calibration summarized in [evals](../references/evals.md), with explicit selection,
+objective-leakage and incomplete-history limits. More same-model votes did not fix
+the mismatched anti-tiling preference. Stop-rule replay is logged-path truncation,
+not causal off-policy optimization; a checkpoint must not erase later possibilities.
+
 ## Detail that remains domain-specific
 
 Keep camera-ray visibility filtering, direct notch/extrude stair edits, measured face flushness, UV Jacobians, projection registration, optical meshes, native hair/ivy APIs and exact material transplants in Blender domain skills. Their old project-specific values are examples, not universal constants. Preserve conflicting failed methods (warped tops, fresh fitted stair boxes, broad reflection sheets, hair-only moss) as negative evidence.

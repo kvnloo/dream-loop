@@ -3,7 +3,7 @@
 Approve the appearance family before optimizing it. A correct coat/glass/scatter
 mechanism can still express the wrong form. Use [exemplar gate](../templates/exemplar-gate.md):
 native target crop → structural reading → two genuinely distinct form hypotheses →
-one negative example → small real coupon → owner approves the language. A whole
+one negative example → small real coupon → owner approves the language. Hold the approved objective fixed: hypotheses must differ in causal construction, not invent a new objective such as “idealized instead of literal.” Resolve that intent question first. A whole
 asset, large population or high samples comes later. Reuse approved exemplars for
 small direct edits; do not force a costly tournament where intent is already exact.
 

@@ -105,6 +105,22 @@ projects, keep rollback pointer and all failure history. If evidence is weak, re
 incumbent. Fix poor measurement before optimizing scheduling; change candidate
 families/headroom when trajectories are flat.
 
+## Local pilot lesson (not a validated universal policy)
+
+The Quackles 2026-10 offline evaluation reports three retrospectively bound owner
+pairs: brief-aware judging matched 2/3, plain A/B 1/3; full-frame/native/both evidence
+setups tied and three same-model votes did not improve pair-level accuracy. Briefs
+were reconstructed with knowledge of owner priorities; this was not held out. Use
+the result to justify prospective objective/calibration work, not an accuracy claim
+or a mandate for more panels. Crops make fine details inspectable; this pilot did
+not establish their accuracy advantage.
+
+Its logged-path two-nonimprovement truncations also lost later kept changes. Our
+two-defect-failure gate therefore stops **dispatch for an owner checkpoint or a new
+authorized hypothesis**, not the entire project as finished. It is not a proven
+GPU-time saving or complete off-policy replay. Dataset joins/unknown parents/costs
+remain partial; see the case study for exact source identity and limitations.
+
 ## Qualify durable rules, not just documents
 
 A fresh-agent plan test on an unseen Three.js game or Blender watch checks whether

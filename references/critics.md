@@ -29,4 +29,8 @@ Do not enlarge a small capture and call it native. Label alignment resizing and 
 
 At milestones use fresh senior-art-director, lookdev-supervisor and phone-viewer framings. Each sees whole-frame evidence and bounded native details, classifies elements as PERFECT / MOSTLY GOOD / NEEDS WORK, states first-glance tells and ranks impact per effort. Same model three times is not three independent experts. Mark owner-approved locks as KEEP/LOCK in adjudicated output while retaining honest raw votes. Use a trajectory sheet of matched crops to expose persistent defects, not a graph of incomparable numeric scores.
 
+Audit native vision payloads rather than a critic's dimension guesses. A surviving JPEG SOF header can establish dimensions even when logged base64 is truncated; never parse that truncated payload as a complete image or claim JPEG transport is byte-identical to source PNG. Read bounded event metadata, not giant base64 logs.
+
+Label rectangular ROI luminance/D65-Lab/high-frequency statistics as unsegmented sanity checks. Use identical masks/definitions; neighboring subjects, light and overlap prevent interpreting them as material-quality scores. Search actual mask manifests and hyphen/underscore variants before inventing a replacement.
+
 Judge the scene, UI/layout/type, interaction/motion, and delivery/performance as separate layers. Use a real device for feel-sensitive acceptance; emulated/software-rendered screenshots cannot prove phone smoothness. Report disagreements and unknown evidence explicitly.

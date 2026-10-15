@@ -10,6 +10,7 @@ The reusable rules below are integrated into the linked topic references.
 | Self-improvement audit | Exemplar gate, scoped preferences, actual receiver preflight, native owner-calibrated rankers, stable defect stop | Owner-authorized process improvements; no claim these already improve art |
 | Classes | Deliberate practice: prediction, small coupon, falsifying control, inspection, reopen, delayed unseen transfer | Reported three mechanism labs/seven renders; not module graduation or production approval |
 | Tools qualification | Audit versions/rights/security, probe real APIs, execute/reopen a bounded coupon, inspect actual appearance | A SAFE scan/install or valid constructor is not a finished graph or good art; qualify each path |
+| Local evaluation | Prospective owner calibration; objective-alignment and stop-rule counterexamples | Three retrospective pairs; crop/panel accuracy benefit not established; no causal scheduling speedup |
 | Dream-RSI v2 | Discovery archive, fixed evaluator cohorts, prefix-only policy replay, incumbent/simple baselines, failure-aware portfolio | Replay cannot invent unseen interventions; offline selection earns only a live trial |
 | Ecosystem review | Dependency closure, exact-vs-estimated replay, all-in costs, abstention, paired holdouts, delivered-vs-best | Official release exists; full trace corpus/harness experiment not established by that release |
 

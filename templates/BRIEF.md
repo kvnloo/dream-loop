@@ -7,6 +7,10 @@ Deliverable: <fixed still / movable 3D / game / UI / zoom>
 Capture contract: <camera/viewport/DPR/state/time/seed/resolution/color pipeline>
 ART STYLE: <unit shape, shading language, coverage, edges, scale>
 Owner's style reading: <confirmed interpretation or open question>
+Style layers: <grain/halftone/ink/cel/faceting; separate from materials; analysis receipt>
+Final-density contract: <max zoom/DPR; >=1 texel/final pixel in both axes; source audit>
+Target pyramid / fixed max-zoom crop gate: <registered tiles, full-density outputs, metrics + native judge>
+AI imagery scope: <real baked mesh textures permitted if authorized; no final-render 2D paint-over>
 
 | Element / ROI | COPY or INTENT | Target structure | Present gap | Direction / acceptance | Protected deviation |
 |---|---|---|---|---|---|

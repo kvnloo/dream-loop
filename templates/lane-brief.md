@@ -13,6 +13,9 @@ Exemplar gate (native crop, reading, two form hypotheses, negative, coupon, owne
 Gap class: <FORM/MATERIAL RESPONSE/LIGHT/ALBEDO/MAPPING/DISPLAY>
 Observable defect and native ROI: <structure, not adjectives>
 ART STYLE / owner interpretation: <description>
+Style-layer analysis: <grain/halftone/ink/cel/faceting separate from materials>
+Max-zoom contract: <source texel budget, target pyramid and fixed full-density crop gate>
+AI texture scope: <real baked mesh texture, never a 2D final-render paint-over>
 Expected visible effect / counterfactual: <falsifiable>
 Allowed change class and any declared coupling: <scope>
 Owner-approved deviations / protected fields: <list verbatim>

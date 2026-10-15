@@ -26,3 +26,6 @@ a standing preference. Preserve earlier decisions and explicit supersession link
 - Viewer + exact delivery verification: <channel>; checkpoint: after every batch
 - Budget, two-failure escalation, promotion/push/deploy authority: <rules>
 - Owner's style reading and negative appearance examples: <scoped evidence>
+- Final-density/zoom budget and intentional-blur exceptions: <scope>
+- Distinguish AI projection-painted **baked mesh textures** from prohibited 2D
+  paint-over of a finished render; record the actual owner permission, not an inference.
