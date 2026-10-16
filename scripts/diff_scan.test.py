@@ -40,6 +40,17 @@ class ScanTests(unittest.TestCase):
             r=m.scan(p/'target.png',p/'current.png',p/'out',ui_mask=p/'ui.png',cols=1,rows=1)
             self.assertAlmostEqual(r['tiles'][0]['metrics']['target_presence'],0.,places=10)
 
+    def test_invalid_regions_fail_closed(self):
+        import tempfile
+        from PIL import Image
+        spec=importlib.util.spec_from_file_location('diff_scan',Path(__file__).with_name('diff_scan.py'))
+        assert spec and spec.loader
+        m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+        with tempfile.TemporaryDirectory() as d:
+            p=Path(d);Image.new('RGB',(64,96)).save(p/'a.png')
+            with self.assertRaises(ValueError):m.scan(p/'a.png',p/'a.png',p/'out',cols=0)
+            with self.assertRaises(ValueError):m.scan(p/'a.png',p/'a.png',p/'out',semantic=[{'name':'bad','bbox':[-1,0,1,1]}])
+
     def test_scan_outputs_masked_rankings_and_blur(self):
         import tempfile,json
         from PIL import Image,ImageFilter
@@ -58,6 +69,8 @@ class ScanTests(unittest.TestCase):
             self.assertTrue(any(t['metrics']['excess_sharpness']>0 for t in result['tiles']))
             self.assertTrue((p/'out/DIFF.md').exists())
             self.assertTrue((p/'out/overlay-greenery.png').exists())
+            self.assertTrue((p/'out/tiles/000/target-greenery.png').exists())
+            self.assertTrue((p/'out/tiles/000/current-sharpness.png').exists())
             self.assertEqual(result['ranked'][0]['score'],max(t['score'] for t in result['ranked']))
             Image.new('RGB',(70,96)).save(p/'bad.png')
             with self.assertRaises(ValueError):m.scan(p/'target.png',p/'bad.png',p/'badout')

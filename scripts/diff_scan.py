@@ -45,6 +45,7 @@ def light_components(mask,valid):
 
 def scan(target_path,current_path,out,ui_mask=None,semantic=None,cols=4,rows=6,max_width=1024):
     """Scan registered equal-aspect frames. Semantic labels are caller-supplied, not detections."""
+    if min(cols,rows,max_width)<1:raise ValueError('grid and analysis width must be positive')
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
     ti=Image.open(target_path).convert('RGB');ci=Image.open(current_path).convert('RGB')
     native_t,native_c=ti.size,ci.size
@@ -63,7 +64,10 @@ def scan(target_path,current_path,out,ui_mask=None,semantic=None,cols=4,rows=6,m
     regs += [dict(q,kind='semantic') for q in sem]
     tiles=[]
     for q in regs:
-        x0,y0,x1,y1=[round(v*(w if i%2==0 else h)) for i,v in enumerate(q['bbox'])]
+        box=q['bbox']
+        if len(box)!=4 or not all(np.isfinite(v) and 0<=v<=1 for v in box) or box[0]>=box[2] or box[1]>=box[3]:raise ValueError('invalid normalized region')
+        x0,y0,x1,y1=[round(v*(w if i%2==0 else h)) for i,v in enumerate(box)]
+        if x1<=x0 or y1<=y0:raise ValueError('region too small at analysis resolution')
         sl=np.s_[y0:y1,x0:x1];v=valid[sl];ve=eroded[sl]
         m=measure(t[sl],c[sl],v)
         for key in ft:
@@ -108,6 +112,17 @@ def scan(target_path,current_path,out,ui_mask=None,semantic=None,cols=4,rows=6,m
         for key,a in f.items():
             scale=20 if key=='sharpness' else 1
             save_map(f'{label}-{key}.png',np.sqrt(a)*scale*valid if key=='sharpness' else a*valid)
+    for index,q in enumerate(tiles):
+        folder=Path('tiles')/f'{index:03d}';(out/folder).mkdir(parents=True,exist_ok=True)
+        q['tile_directory']=str(folder)
+        x0,y0,x1,y1=[round(v*(w if i%2==0 else h)) for i,v in enumerate(q['bbox'])];sl=np.s_[y0:y1,x0:x1]
+        save_map(folder/'valid.png',valid[sl])
+        for label,rgb,f in [('target',t,ft),('current',c,fc)]:
+            save_map(folder/(label+'.png'),rgb[sl]*valid[sl][...,None])
+            for key,a in f.items():
+                data=np.sqrt(a[sl])*20 if key=='sharpness' else a[sl]
+                save_map(folder/(label+'-'+key+'.png'),data*valid[sl])
+    (out/'diff.json').write_text(json.dumps(result,indent=2))
     differences={'greenery':(ft['greenery']-fc['greenery']),'sharpness':np.sqrt(fc['sharpness'])-np.sqrt(ft['sharpness']),
                  'luminance':fc['luminance']-ft['luminance'],'presence':fc['presence']-ft['presence'],'pointlight':fc['pointlight'].astype(float)-ft['pointlight'].astype(float)}
     for key,d in differences.items():
