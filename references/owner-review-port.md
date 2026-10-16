@@ -31,7 +31,8 @@ feedback by mechanism. `owner-evidence.json` retains unbound element receipts
 without assigning them to a mechanism, and a confirmation supersedes only its own
 unbound source receipt.
 
-The synthetic fixture and tests do not read chats or live label files. A later
-integration with the latest `feat/blender-meta-loop` must retain both that branch's
-changes and this synchronized public runtime. The parent owns historical label
-backfill, service restart and any merge or publication.
+The synthetic fixture and tests do not read chats or live label files. The mirror
+includes archive-grounded dream planning and read-only ingestion. Preserve both
+sets of behavior when integrating concurrent changes; run both suites and the
+mirror parity check. Historical backfill and service restarts require separate
+explicit owner authorization.
