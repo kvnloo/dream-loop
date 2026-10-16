@@ -15,6 +15,10 @@ Maintained by Kevin ([kvnloo](https://github.com/kvnloo)). Start with [SKILL.md]
 - **Domain packs:** renderer/capture, runtime, performance and style contracts for different products; isolated component lanes, deterministic integration, protected regions and variant propagation.
 - **Bounded iteration:** a stable defect ledger blocks a third focused attempt after two failures until the owner chooses a new direction.
 
+## Owner review development tool
+
+The loopback HITL review app in `scripts/owner_rating.py` feeds the Blender meta-learning loop. See [owner-review portability and privacy rules](references/owner-review-port.md). Keep labels, conversation receipts, catalog manifests and renders in an external data directory, never in the source repository. Chat backfills preserve verbatim receipts and aspect scope; explicit owner UI decisions supersede them without granting automatic scene approval.
+
 ## Install
 
 Review the checkout before giving an agent access to its scripts. Install the **whole repository**, not just SKILL.md: references, templates and scripts are part of the contract. Use one active copy named `dream-loop` per agent scope. Do not overwrite an existing installation without reviewing and backing it up.
