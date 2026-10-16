@@ -28,3 +28,43 @@ Use the ACTUAL timestamp; the example timestamp is not evidence.
 A recipe is promoted only with owner approval OR qualified calibrated judge candidate win, AND a passed native max-zoom gate with evidence. Pending/non-qualified entries may be archived as candidates, never called winning recipes. Failed implementation is not a mechanism rejection.
 
 Run `python /workspace/dream-loop-meta/scripts/meta_loop.py ingest` and `... report`; `... next --element night-banner` reads current files. Polling is read-only with respect to lane artifacts. Runner owns only meta-loop output; lanes own their own JSONL.
+
+## Owner UI labels (append-only overlay)
+
+`events/owner.jsonl` is reserved for the local owner-rating server. A label does not
+revise a producer trial or change its lane, hypothesis, artifact gates or provenance.
+It references a real materialized `trial_id` and its exact `element`.
+
+```json
+{"event":"owner_label","schema_version":1,"event_id":"ui-unique-request-id","trial_id":"banner-traced-A","element":"night-banner","verdict":"maybe","stars":3,"pairwise":{"other_trial_id":"banner-traced-T","preference":"candidate"},"note":"Exact owner note","timestamp":"2026-10-15T23:00:00+00:00","source":"owner-ui","status":"confirmed","scope":"trial"}
+```
+
+The timestamp above is an example, not a receipt. The server supplies the actual
+UTC timestamp. `verdict` is `accept`, `reject`, or `maybe`; `stars` is an integer
+1–5. `pairwise` is null or `{other_trial_id, preference: candidate|other|tie}`.
+Candidate means the event's trial; other means the named comparison trial.
+Preference is a separate descriptive payoff, never implicit approval or a causal
+ranking. The latest label per trial is materialized, all previous labels remain
+in `owner_label_history`, and a repeated event ID must have identical content.
+
+`scope: trial` updates owner acceptance (maybe resets it to unknown).
+`scope: component` preserves scoped feedback without granting whole-trial
+approval. History confirmation is always component-scoped and includes
+`history_id`, `historical_quote`, `historical_evidence`, `historical_timestamp`,
+and `scope_note`. The UI lets the owner correct the trial binding explicitly.
+Stars never infer a verdict. Acceptance never bypasses max-zoom recipe gates.
+
+`owner-history-inferred.json` audits every retained receipt with an exact quote,
+evidence, status `inferred` or `unresolved`, and zero or more known trial IDs.
+It is not an event log. No inference trains the learner until the owner confirms
+it. Ambiguous timestamps, generic praise and coarse keyword annotations do not
+establish a trial binding.
+
+The server uses process/thread locking, one O_APPEND write, fsync and exact event
+read-back. It rejects incomplete tails instead of repairing/overwriting them.
+Retries retain the request ID; corrections use a new ID. After a confirmed save,
+the ledger, payoffs, recipes, summary, report and next-batch files refresh. The
+fast UI path rechecks the touched trial's artifacts and uses the last ingested
+producer snapshot; run CLI `report` to ingest newly appended producer events.
+Run only one materializer at a time; do not run a separate report/watch writer
+while owner ratings are being posted.

@@ -197,8 +197,11 @@ def learn(rows, calibrations):
             groups[(row['element'], mechanism_key(row))].append(row)
     result = defaultdict(dict)
     for (element, mechanism), group in sorted(groups.items()):
-        values = dict(owner_accept=[], judge_win=[], historical_keep=[], max_zoom_pass=[])
+        values = dict(owner_accept=[], owner_preference=[], judge_win=[], historical_keep=[], max_zoom_pass=[])
         for row in group:
+            preference = (row.get('owner_label', {}).get('pairwise') or {}).get('preference')
+            if preference in ('candidate', 'other'):
+                values['owner_preference'].append(int(preference == 'candidate'))
             owner, judge = owner_outcome(row), judge_outcome(row, calibrations)
             if owner is not None:
                 values['owner_accept'].append(owner)
@@ -516,6 +519,74 @@ def verify_artifacts(rows):
     return list(checked.values())
 
 
+def validate_owner_label(label, trials):
+    """Owner events overlay trials; never grant a producer lane new ownership."""
+    if not isinstance(label, dict) or label.get('event') != 'owner_label' or label.get('schema_version') != 1:
+        raise ValueError('unsupported owner label schema')
+    for key in ('event_id', 'trial_id', 'element', 'timestamp'):
+        if not isinstance(label.get(key), str) or not label[key]:
+            raise ValueError('missing owner label '+key)
+    if label.get('source') != 'owner-ui' or label.get('status') != 'confirmed':
+        raise ValueError('only explicit confirmed owner-ui labels may enter learning')
+    if label.get('verdict') not in ('accept', 'reject', 'maybe'):
+        raise ValueError('invalid owner verdict')
+    stars = label.get('stars')
+    if type(stars) is not int or not 1 <= stars <= 5:
+        raise ValueError('stars must be 1..5')
+    if not isinstance(label.get('note', ''), str) or len(label.get('note', '')) > 12000:
+        raise ValueError('invalid note')
+    if label.get('scope', 'trial') not in ('trial', 'component'):
+        raise ValueError('invalid label scope')
+    stamp = datetime.fromisoformat(label['timestamp'].replace('Z', '+00:00'))
+    if stamp.tzinfo is None:
+        raise ValueError('owner timestamp requires timezone')
+    row = trials.get(label['trial_id'])
+    if not row or row.get('source', {}).get('evidence_only'):
+        raise ValueError('owner label must identify a real trial')
+    if row['element'] != label['element']:
+        raise ValueError('owner element does not match trial')
+    pair = label.get('pairwise')
+    if pair is not None:
+        if not isinstance(pair, dict) or pair.get('preference') not in ('candidate', 'other', 'tie'):
+            raise ValueError('invalid pairwise preference')
+        other = trials.get(pair.get('other_trial_id'))
+        if not other or other['trial_id'] == row['trial_id'] or other.get('source', {}).get('evidence_only'):
+            raise ValueError('pairwise requires another real trial')
+    json_text(label)
+
+
+def apply_owner_labels(rows, labels, receipt_path):
+    rows = copy.deepcopy(rows)
+    trials = {r['trial_id']: r for r in rows}
+    errors, seen = [], {}
+    for row in rows:
+        if 'owner_reaction_before_ui' in row:
+            row['owner_reaction'] = copy.deepcopy(row['owner_reaction_before_ui'])
+        row.pop('owner_label_history', None)
+        row.pop('owner_label', None)
+    for label in labels:
+        try:
+            validate_owner_label(label, trials)
+            encoded = json_text(label)
+            if label['event_id'] in seen:
+                if seen[label['event_id']] != encoded:
+                    raise ValueError('owner event_id conflict '+label['event_id'])
+                continue
+            seen[label['event_id']] = encoded
+            row = trials[label['trial_id']]
+            row.setdefault('owner_reaction_before_ui', copy.deepcopy(row['owner_reaction']))
+            row.setdefault('owner_label_history', []).append(copy.deepcopy(label))
+            row['owner_label'] = copy.deepcopy(label)
+            # Scoped historical feedback is not blanket acceptance of the scene.
+            if label.get('scope', 'trial') == 'trial':
+                row['owner_reaction'] = dict(
+                    status={'accept': 'approved', 'reject': 'rejected', 'maybe': 'uncertain'}[label['verdict']],
+                    receipt=str(receipt_path)+'#'+label['event_id'])
+        except (ValueError, TypeError, KeyError) as exc:
+            errors.append('owner label: '+str(exc))
+    return rows, errors
+
+
 def ingest(data, evals=None):
     data = Path(data)
     if evals is not None:
@@ -537,9 +608,13 @@ def ingest(data, evals=None):
                     ids.add(row['event_id'])
         write_json(data/'owner-anchors.json', anchors)
         write_json(data/'report-sources.json', reports)
-    events, errors, superseded = [], [], []
+    events, errors, superseded, labels = [], [], [], []
     for path in sorted((data/'events').glob('*.jsonl')):
         rows, issues = read_jsonl(path)
+        if path.name == 'owner.jsonl':
+            labels.extend(rows)
+            errors.extend(issues)
+            continue
         native_ids = set()
         for row in rows:
             if row.get('event') == 'meta_trial':
@@ -559,6 +634,8 @@ def ingest(data, evals=None):
                 errors.append(f'{path}:{line}: {exc}')
         errors.extend(issues)
     trials, issues = materialize(events)
+    errors.extend(issues)
+    trials, issues = apply_owner_labels(trials, labels, data/'events/owner.jsonl')
     write_json(data/'superseded-intake.json', superseded)
     errors.extend(issues)
     artifact_receipts = verify_artifacts(trials)
@@ -598,6 +675,12 @@ def recipe_index(rows, calibrations, data, integrity_ok=True):
 def refresh(data, evals=None):
     data = Path(data)
     rows, errors = ingest(data, evals)
+    return publish_materialized(data, rows, errors)
+
+
+def publish_materialized(data, rows, errors):
+    """Publish derived outputs from a validated snapshot, without re-importing lanes."""
+    data = Path(data)
     registry = data/'calibration.json'
     calibrations = json.loads(registry.read_text()).get('registry', {}) if registry.exists() else {}
     payoffs = learn(rows, calibrations)

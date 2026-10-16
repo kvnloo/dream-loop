@@ -17,6 +17,10 @@ python scripts/run_tests.py
 
 The watch is foreground, bounded to at most four hours of waits (17 polls), and does not outlive the caller. Do not detach a polling loop. Use one report/ingest writer; concurrent lanes have separate event files. `--execute` on calibration explicitly opts into paid fresh A/B calls. Preparation alone makes no calls. Existing calibration results are not results from newly prepared packets.
 
+## Owner rating app
+
+See [owner-rating.md](owner-rating.md) for the keyboard-first loopback app, source-bound queue seeding, inferred-history confirmation, and disposable browser verification. Owner events are a separate append-only overlay; no producer lane is rewritten.
+
 ## Contracts and extension
 
 `templates/meta-trial.schema.json` reuses discovery-observation v2 artifact, cohort, ID and timestamp definitions. The original `rounds.schema.json` accepts an optional `meta_trial`; its old required fields and additional-property restriction remain. Legacy v1 `loop-state.mjs` is unchanged. Partial historical imports stay intake records, never fake complete discovery observations. Map trial_id to node_id, first parent to primary_parent, and remaining parents to dependency_ids. Historical rounds are not rewritten.
