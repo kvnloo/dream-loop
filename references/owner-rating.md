@@ -2,26 +2,31 @@
 
 The owner-review service is Python stdlib HTTP on **127.0.0.1:43220**. It does not
 launch a desktop browser, render Blender scenes, call models or promote scenes.
-The seed helper uses the existing Pillow dependency to produce non-resampled
-reference crops. The loop retains its existing jsonschema dependency.
+The manifest seed helper uses the stdlib catalog to describe source-resolution
+reference crops. The loop retains its schema validation.
 
 ## Start and use
 
 ```sh
 python scripts/meta_loop.py --data /path/to/meta-loop report
-python scripts/seed_owner_rating.py --data /path/to/meta-loop
+python scripts/seed_owner_rating.py --data /path/to/meta-loop --manifest /path/to/catalog-input.json
 python scripts/meta_loop.py --data /path/to/meta-loop report
 python scripts/owner_rating.py --data /path/to/meta-loop --port 43220
 ```
 
-The second report ingests any previously report-only variants reconstructed by
-the seed helper. The seeded Quackles catalog contains 45 unique current trials:
-22 banners, five low-poly stone trials, 14 layer stacks plus their integration
-and it12 control, and White A/B. Six stone stacks are also visible in the Stone
-queue without duplicating trial identity. Historical-only frames are separate.
-Existing trial IDs are retained. Eleven missing comic/relief/low-poly variants
-were reconstructed from their reports and real rendered images into
-`events/rating-import.jsonl`; evidence-only reports cannot receive owner labels.
+Seeding requires an explicit external manifest and preserves existing trial IDs.
+It does not reconstruct missing trials, scan project directories, import labels,
+or append events. Evidence-only reports cannot receive owner labels. Paths in
+the manifest are relative to its directory (explicit absolute paths also work).
+Keep this manifest outside the source repository. Synthetic example:
+
+```json
+{"candidates":[{"trial_id":"sample-A","queue":"banner","title":"Synthetic panel","views":[{"path":"sample.png","target":"target.png","kind":"hero","region":"panel"}]}],"anchors":[]}
+```
+
+For a self-contained generated demo, run
+`python scripts/synthetic_fixture.py --data /new/synthetic-review-data`. See the
+[synthetic case study](../case-studies/owner-review-synthetic.md) for boundaries.
 
 A persistent launch may use `nohup ... >>rating-server.log 2>&1 &`. Record the
 actual PID and URL in `RATING-SERVER.md` after verifying `/health`. Never kill or
@@ -49,11 +54,11 @@ reuse an occupied port owned by another process. No external bind flag exists.
 
 ## History
 
-`owner-history-inferred.json` accounts for all 65 retained quotes: 13 inferred
-bindings and 52 unresolved at initial delivery. An inference needs a curated
-linked trial, unique reviewed-image path, identical image hash, or a unique
-retained trial directory. It records the exact quote and evidence. Timestamps
-and coarse sentiment keywords never establish a binding.
+`owner-history-inferred.json` records supplied local receipts as inferred or
+unresolved. An inference needs a curated linked trial, unique reviewed-image
+path, identical image hash, or a unique retained trial directory. It records the
+exact quote and evidence locally; no real receipts ship with the source.
+Timestamps and coarse sentiment keywords never establish a binding.
 
 Confirm History displays each quote, its source images, mapping evidence and a
 binding selector. Suggested decisions are drafts only; stars are not invented.

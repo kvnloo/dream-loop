@@ -27,7 +27,7 @@ Use the ACTUAL timestamp; the example timestamp is not evidence.
 
 A recipe is promoted only with owner approval OR qualified calibrated judge candidate win, AND a passed native max-zoom gate with evidence. Pending/non-qualified entries may be archived as candidates, never called winning recipes. Failed implementation is not a mechanism rejection.
 
-Run `python /workspace/dream-loop-meta/scripts/meta_loop.py ingest` and `... report`; `... next --element night-banner` reads current files. Polling is read-only with respect to lane artifacts. Runner owns only meta-loop output; lanes own their own JSONL.
+From the repository root, run `python scripts/meta_loop.py --data "$OWNER_REVIEW_DATA" ingest` and `... report`; `... next --element night-banner` reads current files. Polling is read-only with respect to lane artifacts. Runner owns only meta-loop output; lanes own their own JSONL.
 
 ## Owner UI labels (append-only overlay)
 

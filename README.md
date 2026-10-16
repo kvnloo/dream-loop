@@ -17,7 +17,7 @@ Maintained by Kevin ([kvnloo](https://github.com/kvnloo)). Start with [SKILL.md]
 
 ## Owner review development tool
 
-The loopback HITL review app in `scripts/owner_rating.py` feeds the Blender meta-learning loop. Its shared runtime and tests are mirrored from the source of truth in the Quackles repository at `tools/owner-review/`. See [owner-review synchronization and privacy rules](references/owner-review-port.md). Keep labels, conversation receipts and renders in an external data directory, never in either source repository. Chat backfills preserve verbatim receipts and aspect scope; explicit owner UI decisions supersede them without granting automatic scene approval.
+The loopback HITL review app in `scripts/owner_rating.py` feeds the Blender meta-learning loop. See [owner-review portability and privacy rules](references/owner-review-port.md). Keep labels, conversation receipts, catalog manifests and renders in an external data directory, never in the source repository. Chat backfills preserve verbatim receipts and aspect scope; explicit owner UI decisions supersede them without granting automatic scene approval.
 
 ## Install
 
