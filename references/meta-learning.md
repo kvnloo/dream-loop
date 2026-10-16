@@ -37,6 +37,23 @@ The 95% interval uses deterministic seeded Beta samples. These are descriptive u
 
 Default portfolio: four slots, two for breadth and two for depth/repair/recombination. Pending representations are not dispatched again. No established winner means an evidence/interpretation repair, not a made-up best. Two nonwins against the same stable defect request a checkpoint or mechanism switch, never global termination. Implementation/resource/evidence failures are not counted as failed mechanism hypotheses. Recombination requires two gated winning recipes. The default banner mechanism space excludes geometry/light/post changes; it is a proposal subject to the owner brief, not execution permission.
 
+## Stuck-defect dream step
+
+```sh
+python scripts/meta_loop.py --data /path/to/meta-loop stuck
+python scripts/meta_loop.py --data /path/to/meta-loop dream --element night-stone
+python scripts/meta_loop.py --data /path/to/meta-loop dream --element night-banner --defect banner-final-density
+python scripts/dream_step.test.py
+```
+
+`stuck` detects two timestamped assessed visual nonwins within an element/stable defect. Unknowns, controls, delivery records, pending reviews and implementation/resource/evidence errors do not count. Same configurations without distinct scene evidence count once; a later evidenced success clears the streak. Explicit producer failures remain diagnostic observations, not owner labels or calibrated payoff. The greenery lane has the analytical subelement `night-banner-greenery`; native producer identity is preserved.
+
+`dream` writes ranked JSON/Markdown portfolios under `dream/`, with exact source IDs and hash-bound starting artifacts. It includes taxonomy breadth (with under-tried classes), quoted cross-lane partial-feature recombinations, compatible other-element recipe components, breadth/depth/earlier-switch prefix audits, and one wildcard. Cost anchors are recorded source-trial medians, not measured coupon times. Hypotheses and rank are explicit heuristics, not visual payoff predictions. Mechanism+semantic-parameter similarity with a 15% numeric tolerance suppresses nearby failed clones; missing common parameters cannot prove novelty. The fixed taxonomy distinguishes actual construction changes from renamed families. Pending mechanisms and completed renders awaiting review are withheld as full `reserved_directions`, not dispatched twice. Identical proposals across defects are consolidated with all covered defect IDs and evidence retained. When active producers prevent a stable long read, freeze the small event/calibration streams with immediate source/copy hash verification, then hash artifacts once and publish all element portfolios from that shared snapshot. Retain the snapshot timestamp and original path/hash manifest; do not disable the live CLI's fail-closed guard.
+
+`next` automatically includes the dream portfolio for stuck elements. Invalid streams block both the legacy batch and the dream. `stuck`, `dream` and `next` now use read-only ingestion with before/after archive hash checks, so they do not race the owner server's ledger/report writer. Only `dream` writes its own portfolio files. Exact defect requests use hash-suffixed filenames and cannot replace an all-defect portfolio. No owner events, CURRENT pointers, scene files or model weights are changed.
+
+The new replay is a timestamped **materialized-observation** support audit; it does not reconstruct original-time revision histories. Decisions see strictly earlier rows, never equal-time peers. Mechanism matches are weak support, not exact parameter/parent matches. Unknown outcomes and policy values stay null. Exploration gaps are places an earlier-switch rule would allocate differently—not predictions that unexplored branches would succeed. Full behavioral tests exercise these limits.
+
 ## Dream-RSI-style replay — bounded claim
 
 Replay groups only rows with explicit original-ledger locators; file mtimes do not establish decision order. Unknown mechanism classifications are excluded. Each recommendation sees only the earlier prefix, using one fixed mechanism action space. Compare a two-breadth/two-depth scheduler against previous-mechanism refinement and fixed round-robin. Evaluate reward only when the recommendation matches the recorded action; unmatched actions are unsupported, not failed. Matched subsets differ, logging propensities are absent, and changing one action changes future states. Therefore the output deliberately leaves `value_estimate` null: this is a prefix/leakage/support audit, not a causal simulator or proven scheduler win.
