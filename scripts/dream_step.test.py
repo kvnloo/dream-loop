@@ -113,7 +113,7 @@ class DreamTests(unittest.TestCase):
             (root/'events/owner.jsonl').write_text('')
             before = {str(p): p.read_bytes() for p in root.rglob('*') if p.is_file()}
             def cli(*args):
-                return subprocess.run([sys.executable, str(m.ROOT/'scripts/meta_loop.py'), '--data', str(root), *args],
+                return subprocess.run([sys.executable, str(Path(m.__file__).resolve()), '--data', str(root), *args],
                                       text=True, capture_output=True)
             result = cli('stuck')
             self.assertEqual(result.returncode, 0, result.stderr)
