@@ -67,6 +67,7 @@ Read [script contracts](references/scripts.md) before invoking new helpers. Run 
 
 ## Pitfalls
 
+- Do not build from an eyeballed read of a dark or low-contrast region ("needs more sheen", "needs darker moss"): measure the region's low-pass luminance, hue and contrast against the target first. A confident visual read can point the wrong way.
 - Do not reward gate-number decreases after PASS, extrapolate beauty from geometry counts, or hide regressions behind majority preference.
 - Do not call upscaled detail native, inferred maps measured PBR, projection relightable reconstruction, or tests owner acceptance.
 - Do not overwrite renders, share unowned global settings, drift from the approved fixture, or restart a failed worker before inspecting its saved artifacts.
