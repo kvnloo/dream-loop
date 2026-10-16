@@ -530,6 +530,9 @@ def validate_owner_label(label, trials):
         raise ValueError('only explicit confirmed owner-ui labels may enter learning')
     if label.get('verdict') not in ('accept', 'reject', 'maybe'):
         raise ValueError('invalid owner verdict')
+    # Older append-only labels remain valid; new UI writes require this field.
+    if 'judged_on' in label and label['judged_on'] not in ('look', 'clear', 'both'):
+        raise ValueError('invalid judged_on')
     stars = label.get('stars')
     if type(stars) is not int or not 1 <= stars <= 5:
         raise ValueError('stars must be 1..5')

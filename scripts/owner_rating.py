@@ -3,6 +3,7 @@
 from __future__ import annotations
 import argparse
 import fcntl
+import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import mimetypes
@@ -11,6 +12,7 @@ from pathlib import Path
 import re
 import secrets
 import threading
+import time
 from urllib.parse import urlsplit
 import meta_loop as ml
 
@@ -36,11 +38,63 @@ class RatingApp:
         self.token = secrets.token_urlsafe(32)
         self.lock = threading.RLock()
         self.catalog = json.loads((self.data/'rating-catalog.json').read_text())
+        self.watch_start = time.monotonic()
+        self.next_poll = self.watch_start
+        self.poll_status: dict = dict(active=True, interval_seconds=900, duration_seconds=14400,
+                                last_checked=None, error=None)
+
+    def poll(self, now=None):
+        """The server owns one bounded poller, serialized with all label writes."""
+        now = time.monotonic() if now is None else now
+        if now > self.watch_start + self.poll_status['duration_seconds']:
+            with self.lock:
+                if self.poll_status['active']:
+                    self.poll_status['active'] = False
+                    atomic_json(self.data/'rating-poll.json', self.poll_status)
+            return False
+        if now < self.next_poll:
+            return False
+        self.next_poll = now + self.poll_status['interval_seconds']
+        from live_rating import LANES, lane_rows, build_catalog
+        with self.lock, (self.data/'owner-rating.lock').open('a') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            try:
+                incoming = lane_rows(self.data)
+                old = json.loads((self.data/'ledger.json').read_text())
+                ids = {r['trial_id']:r for r in old}
+                for row in incoming:
+                    if row['trial_id'] in ids and ids[row['trial_id']]['lane'] != row['lane']:
+                        raise ValueError('Cross-lane ownership conflict')
+                catalog = build_catalog(self.data, self.catalog, incoming)
+                labels, errors = ml.read_jsonl(self.data/'events/owner.jsonl')
+                if errors:
+                    raise ValueError('; '.join(errors))
+                rows = [r for r in old if r['lane'] not in LANES] + incoming
+                rows, errors = ml.apply_owner_labels(rows, labels, self.data/'events/owner.jsonl')
+                if errors:
+                    raise ValueError('; '.join(errors))
+                # Match normal ingestion integrity checks without rehashing unrelated history.
+                ml.verify_artifacts([r for r in rows if r['lane'] in LANES])
+                atomic_json(self.data/'ledger.json', rows)
+                intake = self.data/'ingest.json'
+                if intake.exists():
+                    errors += json.loads(intake.read_text()).get('errors', [])
+                ml.publish_materialized(self.data, rows, errors)
+                atomic_json(self.data/'rating-catalog.json', catalog)
+                self.catalog = catalog
+                self.poll_status.update(last_checked=ml.now(), error=None,
+                                        candidates=len(catalog['candidates']))
+                atomic_json(self.data/'rating-poll.json', self.poll_status)
+                return True
+            except Exception as exc:
+                self.poll_status.update(last_checked=ml.now(), error=str(exc))
+                atomic_json(self.data/'rating-poll.json', self.poll_status)
+                return False
 
     def state(self):
         with self.lock:
             labels, errors = ml.read_jsonl(self.data/'events/owner.jsonl')
-            return dict(**self.catalog, token=self.token, labels=labels, errors=errors)
+            return dict(**self.catalog, token=self.token, labels=labels, errors=errors, polling=self.poll_status)
 
     def submit(self, payload):
         if not isinstance(payload, dict):
@@ -58,7 +112,15 @@ class RatingApp:
         event_id = payload.get('event_id')
         if not isinstance(event_id, str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,100}', event_id):
             raise ValueError('event_id must be a 1..100 character request identifier')
-        label = {k: payload.get(k) for k in ('event_id', 'trial_id', 'element', 'verdict', 'stars', 'pairwise')}
+        if payload.get('judged_on') not in ('look', 'clear', 'both'):
+            raise ValueError('judged_on must be look, clear or both')
+        candidate = next((c for c in self.catalog['candidates'] if c['trial_id']==payload.get('trial_id')), None)
+        if candidate:
+            available = {m for v in candidate['views'] for m in ('look','clear') if v.get(m)}
+            required = {'look','clear'} if payload['judged_on']=='both' else {payload['judged_on']}
+            if available and not required <= available:
+                raise ValueError('Requested judging mode unavailable for this candidate')
+        label = {k: payload.get(k) for k in ('event_id', 'trial_id', 'element', 'verdict', 'stars', 'pairwise', 'judged_on')}
         label.update(event='owner_label', schema_version=1, timestamp=ml.now(),
                      source='owner-ui', status='confirmed', note=payload.get('note', ''),
                      scope=payload.get('scope', 'trial'))
@@ -116,7 +178,12 @@ class RatingApp:
                     payoffs=payoffs.get(label['element'], {}), errors=errors)
 
 
-def make_server(app, port=43220):
+def make_server(app, port=43220, watch=False):
+    class Server(ThreadingHTTPServer):
+        def service_actions(self):
+            if watch:
+                app.poll()
+
     class Handler(BaseHTTPRequestHandler):
         def allowed(self):
             return self.headers.get('Host') == f'127.0.0.1:{server.server_port}'
@@ -140,7 +207,7 @@ def make_server(app, port=43220):
             if path == '/api/state':
                 return self.respond(200, app.state())
             if path == '/health':
-                return self.respond(200, {'ok': True, 'service': 'owner-rating', 'data': str(app.data)})
+                return self.respond(200, {'ok': True, 'service': 'owner-rating', 'data': str(app.data), 'polling': app.poll_status})
             if path.startswith('/assets/'):
                 asset = app.catalog['assets'].get(path.removeprefix('/assets/'))
                 if not asset:
@@ -148,7 +215,10 @@ def make_server(app, port=43220):
                 file = Path(asset['path'])
                 if file.suffix.lower() not in ('.png', '.jpg', '.jpeg', '.webp') or not file.is_file():
                     return self.respond(404, {'error': 'Missing image'})
-                return self.respond(200, file.read_bytes(), mimetypes.guess_type(file.name)[0] or 'image/png')
+                pixels = file.read_bytes()
+                if hashlib.sha256(pixels).hexdigest() != asset.get('sha256'):
+                    return self.respond(409, {'error': 'Image changed; wait for a source-bound lane refresh'})
+                return self.respond(200, pixels, mimetypes.guess_type(file.name)[0] or 'image/png')
             files = {'/': 'owner-rating.html', '/app.js': 'owner-rating.js', '/app.css': 'owner-rating.css'}
             if path in files:
                 file = Path(__file__).with_name(files[path])
@@ -175,7 +245,7 @@ def make_server(app, port=43220):
                 # A post-write refresh failure must not invite a new request ID.
                 return self.respond(500, {'error': str(exc), 'retry_same_event_id': True})
             self.respond(200, result)
-    server = ThreadingHTTPServer(('127.0.0.1', port), Handler)
+    server = Server(('127.0.0.1', port), Handler)
     return server
 
 
@@ -185,7 +255,8 @@ def main():
     parser.add_argument('--port', type=int, default=43220)
     args = parser.parse_args()
     app = RatingApp(args.data)
-    server = make_server(app, args.port)
+    server = make_server(app, args.port, watch=True)
+    app.poll()
     print(json.dumps({'url': f'http://127.0.0.1:{server.server_port}/', 'pid': os.getpid()}), flush=True)
     try:
         server.serve_forever()

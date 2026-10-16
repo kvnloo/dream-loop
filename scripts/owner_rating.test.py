@@ -44,7 +44,7 @@ class OwnerIngestion(unittest.TestCase):
             ml.ingest(data)
             (data/'rating-catalog.json').write_text(json.dumps({'candidates': [], 'history': [], 'assets': {}}))
             app = ui.RatingApp(data)
-            label = dict(event_id='request-1', trial_id='trial-A', element='night-banner',
+            label = dict(judged_on='clear', event_id='request-1', trial_id='trial-A', element='night-banner',
                          verdict='accept', stars=5, note='temporary test', pairwise=None)
             result = app.submit(label)
             self.assertEqual(result['next']['learned_best'], 'traced_vector')
@@ -152,7 +152,7 @@ class OwnerIngestion(unittest.TestCase):
             ml.ingest(data)
             (data/'rating-catalog.json').write_text(json.dumps({'candidates':[],'history':[],'assets':{}}))
             app=ui.RatingApp(data)
-            valid=dict(event_id='once',trial_id='A',element='night-banner',verdict='accept',stars=4,note='',pairwise=None)
+            valid=dict(judged_on='clear', event_id='once',trial_id='A',element='night-banner',verdict='accept',stars=4,note='',pairwise=None)
             for change in ({'stars':0},{'stars':True},{'stars':6},{'verdict':'approved'},
                            {'trial_id':'missing'},{'element':'night-stone'},
                            {'pairwise':{'other_trial_id':'A','preference':'candidate'}},
@@ -185,7 +185,7 @@ class OwnerIngestion(unittest.TestCase):
             ml.ingest(data)
             (data/'rating-catalog.json').write_text(json.dumps({'candidates':[],'history':[],'assets':{}}))
             app=ui.RatingApp(data)
-            payload=dict(event_id='once',trial_id='A',element='night-banner',verdict='accept',stars=4)
+            payload=dict(judged_on='clear', event_id='once',trial_id='A',element='night-banner',verdict='accept',stars=4)
             app.submit(payload)
             path=data/'events/owner.jsonl'
             path.write_bytes(path.read_bytes().rstrip(b'\n'))

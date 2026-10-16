@@ -3,20 +3,20 @@ const $ = id => document.getElementById(id);
 let data, queue = 'banner', index = 0, kind = 'hero', region = '', zoomed = false, flipped = false, busy = false;
 let list = [], current = null, historyEntry = null, draft = {}, failedPayload = null;
 const drafts = new Map();
-const labels = {banner:'Banner',stone:'Stone',stacks:'Layer stacks',white:'White arch',history:'Confirm history',unresolved:'Unresolved history'};
+const labels = {banner:'Banner',stone:'Stone',stacks:'Layer stacks',white:'White arch','stone-mosaic':'Stone mosaic',optics:'Optics','banner-greenery':'Greenery',history:'Confirm history',unresolved:'Unresolved history'};
 const kinds = {hero:'Hero',native:'Native', '201mp':'201 MP','1gp':'1 GP'};
 function text(id,value){$(id).textContent = value ?? '';}
 function status(message,error=false){text('status',message);$('status').classList.toggle('error',error);}
 function asset(url){return url ? data.assets[url.split('/').pop()] : null;}
 function reviewed(c){return data.labels.some(l=>l.trial_id===c.trial_id&&!l.history_id);}
 function key(){return queue+':'+(historyEntry?.id||current?.trial_id||index);}
-function remember(){if(current) drafts.set(key(),{...draft,note:$('note').value});}
+function remember(){if(current) drafts.set(key(),{...draft,note:$('note').value,pairChecked:$('pair').checked,otherId:$('other').value});}
 function getCandidate(id){return data.candidates.find(c=>c.trial_id===id);}
 function option(value,name){const o=document.createElement('option');o.value=value;o.textContent=name;return o;}
 function buttons(){
   document.querySelectorAll('[data-verdict]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.verdict===draft.verdict)));
   [...$('stars').children].forEach((b,i)=>b.setAttribute('aria-pressed',String(i+1===draft.stars)));
-  $('save').disabled=busy||!current||!draft.stars||!draft.verdict;
+  $('save').disabled=busy||!current||!draft.stars||!draft.verdict||!draft.judged_on;
   text('preference',draft.preference ? ({candidate:'Right preferred',other:'Left preferred',tie:'No preference'})[draft.preference] : 'No preference selected');
 }
 function selectQueue(name){remember();queue=name;index=0;renderQueue();}
@@ -52,7 +52,7 @@ function render(){
   if(previous?.boundId)current=getCandidate(previous.boundId)||current;
   if(historyEntry)$('binding').value=current?.trial_id||'';
   $('note').value=draft.note;
-  $('pair').checked=!!historyEntry?.suggested_pairwise;
+  $('pair').checked=draft.pairChecked??!!historyEntry?.suggested_pairwise;
   if(current){
     const other=historyEntry?.suggested_pairwise?.baseline||current.compare_to;
     $('other').replaceChildren(option('','Choose comparison…'),...data.candidates.filter(c=>c.trial_id!==current.trial_id&&c.queue!=='history-only').map(c=>option(c.trial_id,c.title)));
@@ -60,13 +60,14 @@ function render(){
     if(other&&!Array.from($('other').options).some(o=>o.value===other)){
       const c=getCandidate(other);if(c)$('other').append(option(c.trial_id,c.title));
     }
-    $('other').value=other||'';
+    $('other').value=draft.otherId??other??'';
     text('title',current.title);text('hypothesis',current.hypothesis);text('eyebrow',labels[queue]+' / '+current.element);
   }else{text('title',historyEntry?'Bind this historical quote':'Nothing in this queue');text('hypothesis','No trial is inferred. Choosing a trial is an explicit owner correction.');}
   text('position',list.length?`${index+1} / ${list.length}`:'0 / 0');
   const done=historyEntry?list.filter(h=>data.labels.some(l=>l.history_id===h.id)).length:list.filter(reviewed).length;
   text('reviewed',`${done} reviewed`);
   $('prev').disabled=index===0;$('next').disabled=index>=list.length-1;
+  if(current?.default_view){kind=current.default_view.kind;region=current.default_view.region;}
   flipped=false;zoomed=false;renderImages();buttons();
   status(current?'Choose stars and a decision, then press Enter.':'Choose the correct trial above before rating.');
   try{localStorage.setItem('owner-review-position',JSON.stringify({queue,index}));}catch{}
@@ -82,6 +83,18 @@ function renderImages(){
   let available=views.filter(v=>v.kind===kind);
   if(!available.some(v=>v.region===region))region=available[0]?.region||'';
   const view=available.find(v=>v.region===region);
+  const modes=view?.look||view?.clear ? ['both','look','clear'].filter(m=>m==='both'?view.look&&view.clear:view[m]) : ['look','clear'];
+  const legacy=!!view&&!view.look&&!view.clear;
+  if(!modes.includes(draft.judged_on))draft.judged_on=legacy?'':modes[0];
+  $('judge-mode').replaceChildren(...(legacy?[option('','Identify legacy optics…')]:[]),...modes.map(m=>option(m,m==='both'?'Both / side by side':m.toUpperCase())));
+  $('judge-mode').value=draft.judged_on||'';
+  const mode=draft.judged_on;
+  const showBoth=!legacy&&mode==='both';
+  const shown=view?.[mode==='clear'?'clear':'look']||view?.image;
+  $('clear-figure').hidden=!showBoth;
+  $('stage').classList.toggle('dual-optics',showBoth);
+  text('optics-note',legacy?'Legacy optics unclassified: identify LOOK or CLEAR from the source before saving.':
+    'Judged on: '+(mode||'none').toUpperCase()+(view?.missing_modes?.length?' — '+view.missing_modes.join(' / ').toUpperCase()+' render not yet available.':''));
   $('densities').replaceChildren();
   for(const [k,name] of Object.entries(kinds)){
     const b=document.createElement('button');b.textContent=name;b.disabled=!views.some(v=>v.kind===k);b.setAttribute('aria-pressed',String(kind===k));
@@ -105,19 +118,22 @@ function renderImages(){
     }else{e.removeAttribute('src');e.hidden=true;e.classList.remove('loading');}
   }
   image('target-image',view?.target);$('target-missing').hidden=!!view?.target;
-  image('candidate-image',flipped&&view?.target?view.target:view?.image);
+  image('candidate-image',flipped&&view?.target?view.target:shown);
+  image('clear-image',showBoth?view.clear:null);
   image('other-image',pair?otherView?.image:null);
-  text('candidate-caption',flipped?'TARGET FLIP':'RIGHT / '+(current?.title||'Unbound'));
+  text('candidate-caption',flipped?'TARGET FLIP':(mode==='clear'?'CLEAR':legacy?'CANDIDATE':'LOOK')+' / '+(current?.title||'Unbound'));
   text('other-title','LEFT / '+(other?.title||'Choose comparison'));
   function dimensions(url){const a=asset(url);return a?a.size.join(' × '):'';}
-  text('target-size',dimensions(view?.target));text('candidate-size',dimensions(flipped?view?.target:view?.image));text('other-size',dimensions(otherView?.image));
-  text('image-note',view?.target_note||'No source image bound.');
+  text('target-size',dimensions(view?.target));text('candidate-size',dimensions(flipped?view?.target:shown));text('other-size',dimensions(otherView?.image));
+  text('clear-size',dimensions(view?.clear));
+  text('image-note',(view?.target_note||'No source image bound.')+(view?.optics?' Optics receipt: '+JSON.stringify(view.optics):''));
   text('view-state',`${zoomed?'1:1 pixels; scroll to inspect':'Fit view'}${flipped?' / target flip':''}`);
   $('zoom').setAttribute('aria-pressed',String(zoomed));$('flip').setAttribute('aria-pressed',String(flipped));
   $('sources').replaceChildren();
-  for(const [name,url] of [['Candidate original',view?.image],['Target original',view?.target],...(current?.comparisons||[]).map((url,i)=>['Comparison sheet '+(i+1),url]),...(historyEntry?.review_images||[]).map(i=>['Historical '+i.role,i.image])]){
+  for(const [name,url] of [['LOOK original',view?.look],['CLEAR original',view?.clear],['Candidate original',view?.image],['Target original',view?.target],...(current?.comparisons||[]).map((url,i)=>['Comparison sheet '+(i+1),url]),...(historyEntry?.review_images||[]).map(i=>['Historical '+i.role,i.image])]){
     if(!url)continue;const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.textContent=name;$('sources').append(a);
   }
+  buttons();
   if(pair&&otherView&&otherView.kind!==kind)status('Left candidate has no matching density; showing '+(kinds[otherView.kind]||otherView.kind)+'.');
 }
 function move(delta){if(busy)return;remember();if(index+delta<0||index+delta>=list.length){status('End of this queue. Choose another queue or revisit a rating.');return;}index+=delta;render();}
@@ -125,11 +141,11 @@ function setStars(n){draft.stars=n;failedPayload=null;buttons();status('Draft qu
 function setVerdict(v){draft.verdict=v;failedPayload=null;buttons();status('Draft decision: '+v+'. Enter to save.');}
 function prefer(value){if(!$('other').value){status('Choose a comparison candidate first.',true);return;}$('pair').checked=true;draft.preference=value;failedPayload=null;renderImages();buttons();}
 async function save(){
-  if(busy||!current||!draft.stars||!draft.verdict)return;
+  if(busy||!current||!draft.stars||!draft.verdict||!draft.judged_on)return;
   if($('pair').checked&&!draft.preference){status('Choose left, right, or tie before saving a comparison.',true);return;}
   busy=true;buttons();status('Saving locally and refreshing next batch…');
   const request=failedPayload||{event_id:'ui-'+(globalThis.crypto?.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)),
-    trial_id:current.trial_id,element:current.element,stars:draft.stars,verdict:draft.verdict,note:$('note').value,
+    judged_on:draft.judged_on,trial_id:current.trial_id,element:current.element,stars:draft.stars,verdict:draft.verdict,note:$('note').value,
     pairwise:$('pair').checked?{other_trial_id:$('other').value,preference:draft.preference}:null,
     scope:historyEntry?'component':'trial',history_id:historyEntry?.id||null};
   try{
@@ -145,6 +161,8 @@ async function save(){
   }catch(error){failedPayload=request;busy=false;status('Not confirmed: '+error.message+'. Retry Save with the same request ID.',true);}
   buttons();
 }
+$('judge-mode').onchange=()=>{draft.judged_on=$('judge-mode').value;failedPayload=null;renderImages();};
+$('look-toggle').onclick=()=>{const modes=Array.from($('judge-mode').options).map(o=>o.value).filter(Boolean);draft.judged_on=modes[(modes.indexOf(draft.judged_on)+1)%modes.length];failedPayload=null;renderImages();};
 $('region').onchange=()=>{region=$('region').value;flipped=false;renderImages();};
 $('pair').onchange=()=>{draft.preference=null;renderImages();buttons();};
 $('other').onchange=()=>{draft.preference=null;failedPayload=null;renderImages();buttons();};
@@ -166,14 +184,35 @@ document.addEventListener('keydown',event=>{
   else if(['a','r','m'].includes(k)){event.preventDefault();setVerdict({a:'accept',r:'reject',m:'maybe'}[k]);}
   else if(k==='enter'){event.preventDefault();save();}
   else if(k==='n'||k==='p'){event.preventDefault();move(k==='n'?1:-1);}
+  else if(k==='l'){event.preventDefault();$('look-toggle').click();}
   else if(k==='z'){event.preventDefault();$('zoom').click();}
   else if(k===' '){event.preventDefault();$('flip').click();}
   else if(k==='arrowleft'||k==='arrowright'){event.preventDefault();prefer(k==='arrowleft'?'other':'candidate');}
 });
 for(const img of document.querySelectorAll('img'))img.addEventListener('error',()=>status('Image unavailable. Open source evidence before rating.',true));
+async function refreshCatalog(){
+  if(busy||failedPayload)return;
+  try{
+    const response=await fetch('/api/state');if(!response.ok)throw new Error('Queue refresh failed');
+    const value=await response.json();
+    text('poll-state',value.polling?.error?'Lane refresh waiting: '+value.polling.error:
+      value.polling?.active?'Auto-add: every 15 minutes for this four-hour server window.':'Auto-add window complete; restart server to watch again.');
+    if(busy||failedPayload)return;
+    if(value.generated_at!==data.generated_at){
+      remember();const id=historyEntry?.id||current?.trial_id;
+      data=value;
+      const entries=queue==='history'||queue==='unresolved'?data.history.filter(h=>h.status===(queue==='history'?'inferred':'unresolved')):
+        data.candidates.filter(c=>c.queue===queue||queue==='stone'&&c.queue==='stacks'&&c.element==='night-stone');
+      const found=entries.findIndex(c=>(c.id||c.trial_id)===id);if(found>=0)index=found;
+      text('connection','Local / '+data.candidates.filter(c=>c.queue!=='history-only').length+' candidates');
+      renderQueue();
+    }
+  }catch(error){text('poll-state',error.message+'; existing queue retained.');}
+}
 fetch('/api/state').then(r=>{if(!r.ok)throw new Error('Server returned '+r.status);return r.json();}).then(value=>{
   data=value;
   try{const saved=JSON.parse(localStorage.getItem('owner-review-position'));if(saved&&labels[saved.queue]){queue=saved.queue;index=saved.index||0;}}catch{}
   text('connection','Local / '+data.candidates.filter(c=>c.queue!=='history-only').length+' candidates');renderQueue();
   document.body.dataset.ready='true';
+  setInterval(refreshCatalog,30000);
 }).catch(error=>{text('connection','Unable to load');status(error.message,true);});

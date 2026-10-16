@@ -73,11 +73,12 @@ class Catalog:
         path = Path(path).resolve()
         if not path.is_file():
             raise ValueError('Missing catalog image '+str(path))
-        key = hashlib.sha256(str(path).encode()).hexdigest()[:24]
+        digest = ml.digest(path)
+        key = hashlib.sha256((str(path)+'\0'+digest).encode()).hexdigest()[:24]
         if key not in self.assets:
             with Image.open(path) as image:
                 size = list(image.size)
-            self.assets[key] = dict(path=str(path), sha256=ml.digest(path), size=size,
+            self.assets[key] = dict(path=str(path), sha256=digest, size=size,
                                     provenance=str(provenance) if isinstance(provenance, Path) else provenance)
         return '/assets/'+key
 

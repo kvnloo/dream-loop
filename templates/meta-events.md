@@ -36,12 +36,14 @@ revise a producer trial or change its lane, hypothesis, artifact gates or proven
 It references a real materialized `trial_id` and its exact `element`.
 
 ```json
-{"event":"owner_label","schema_version":1,"event_id":"ui-unique-request-id","trial_id":"banner-traced-A","element":"night-banner","verdict":"maybe","stars":3,"pairwise":{"other_trial_id":"banner-traced-T","preference":"candidate"},"note":"Exact owner note","timestamp":"2026-10-15T23:00:00+00:00","source":"owner-ui","status":"confirmed","scope":"trial"}
+{"event":"owner_label","schema_version":1,"event_id":"ui-unique-request-id","trial_id":"banner-traced-A","element":"night-banner","verdict":"maybe","stars":3,"judged_on":"both","pairwise":{"other_trial_id":"banner-traced-T","preference":"candidate"},"note":"Exact owner note","timestamp":"2026-10-15T23:00:00+00:00","source":"owner-ui","status":"confirmed","scope":"trial"}
 ```
 
 The timestamp above is an example, not a receipt. The server supplies the actual
 UTC timestamp. `verdict` is `accept`, `reject`, or `maybe`; `stars` is an integer
-1–5. `pairwise` is null or `{other_trial_id, preference: candidate|other|tie}`.
+1–5. New UI writes require `judged_on: look|clear|both`, the owner's selected
+render basis. Older labels remain valid without rewriting or inventing their
+judging basis. `pairwise` is null or `{other_trial_id, preference: candidate|other|tie}`.
 Candidate means the event's trial; other means the named comparison trial.
 Preference is a separate descriptive payoff, never implicit approval or a causal
 ranking. The latest label per trial is materialized, all previous labels remain
@@ -65,6 +67,7 @@ read-back. It rejects incomplete tails instead of repairing/overwriting them.
 Retries retain the request ID; corrections use a new ID. After a confirmed save,
 the ledger, payoffs, recipes, summary, report and next-batch files refresh. The
 fast UI path rechecks the touched trial's artifacts and uses the last ingested
-producer snapshot; run CLI `report` to ingest newly appended producer events.
+producer snapshot. The server auto-ingests the three configured live lanes
+every 15 minutes for a four-hour window, under the same write lock.
 Run only one materializer at a time; do not run a separate report/watch writer
 while owner ratings are being posted.

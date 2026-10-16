@@ -34,6 +34,14 @@ reuse an occupied port owned by another process. No external bind flag exists.
   A preference does not implicitly accept either trial. A tie button is available.
 - **Z** jumps to the highest available density at 1:1 pixels, with scrollable crops.
 - **Space** flips the current pane to the target and back.
+- **L** cycles Both (side by side), LOOK, CLEAR where those renders exist.
+  TARGET stays visible. `Judged on` records the owner's selected basis as
+  `judged_on: look|clear|both` on every new label. Missing variants are explicit;
+  historical images with unclassified optics require the owner to identify the
+  mode before Save becomes available. No image is silently treated as CLEAR.
+- **Stone mosaic**, **Optics**, and **Greenery** are live producer queues.
+  Stone mosaic opens on the measured plinth front-face crop, including native
+  density front crops when the trial only contains density evidence.
 - Typing in an input/select suppresses global shortcuts; Escape releases focus.
 - Density/region controls expose real available evidence. Missing 201 MP or 1 GP
   views are disabled. The target is always source-resolution evidence, not
@@ -68,9 +76,29 @@ Maybe is unknown, not failure. Stars never infer acceptance. Native crop gates
 and artifact integrity still control recipe qualification.
 
 The responsive path re-hashes the touched trial and uses the latest ingested
-producer snapshot. Use `meta_loop.py report` when new lane events arrive, then
-reseed/restart the app if new candidates should appear. Keep one materializer;
-do not run a concurrent report/watch writer during an owner rating session.
+producer snapshot. The server refreshes `stone-mosaic`, `optics`, and
+`banner-greenery` immediately at startup and every 900 seconds for up to 14,400
+seconds. Its own server loop owns this finite schedule; there is no detached
+polling process. The page checks the catalog every 30 seconds without discarding
+unsaved stars/decision/notes. `/health` and `rating-poll.json` expose last refresh
+and failures. After four hours the rating app stays available; restarting opens
+a new four-hour watch window. Keep one materializer; do not run a concurrent
+CLI report/watch writer during an owner rating session.
+
+Live ingestion is serialized with label saves by the same RLock and flock.
+Producer revisions are deduplicated/materialized; partial JSONL tails retain the
+previous queue and report an error. Only hash-bound image artifacts from real
+completed trials enter these queues. No lane or owner event file is written by
+the poller. Render master/border receipts generate source-resolution TARGET
+crops; inconsistent dimensions are withheld in `live_warnings`. Asset URLs bind
+content hashes, and HTTP rejects images changed after cataloging.
+
+`night-v2/optics/LOOK.json` is exposed with its exact settings and hash when
+present. Each view also retains the actual optics receipt: historical/provisional
+LOOKs are not misrepresented as renders of the latest selected settings. Optics
+variants may share their same-source, same-size independently rendered CLEAR
+control. This UI never renders Blender scenes or fabricates missing LOOK/CLEAR
+counterparts; the producing lanes must deliver them.
 The service has loopback Host checks, same-origin request checks and a
 per-process request token. Only allowlisted image assets are served; arbitrary
 filesystem paths, source code, directory indexes and cross-origin requests are

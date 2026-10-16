@@ -43,6 +43,19 @@ def main():
         shots.append(str(path))
     try:
         run('open',args.url);run('set','viewport','1600','1100');shot('RATING-DESKTOP.png')
+        js("Array.from(document.querySelectorAll('#queues button')).find(b=>b.firstChild.textContent==='Stone mosaic').click(); true")
+        shot('RATING-LOOK-CLEAR.png')
+        assert js("document.getElementById('region').value === 'plinth front face'")
+        assert js("document.getElementById('judge-mode').value === 'both'")
+        assert js("document.getElementById('candidate-image').getBoundingClientRect().right <= document.getElementById('clear-image').getBoundingClientRect().left")
+        run('press','l');ready()
+        assert js("document.getElementById('judge-mode').value === 'look' && document.getElementById('clear-figure').hidden")
+        run('press','l');ready()
+        assert js("document.getElementById('judge-mode').value === 'clear'")
+        run('press','l');ready()
+        for name in ('Optics','Greenery'):
+            js("Array.from(document.querySelectorAll('#queues button')).find(b=>b.firstChild.textContent==="+json.dumps(name)+").click(); true")
+            shot('RATING-'+name.upper()+'.png')
         # Real keyboard events with actual image decode; do not press rating/save keys.
         run('press','z');ready()
         assert js("document.getElementById('stage').classList.contains('zoomed')")
@@ -56,10 +69,12 @@ def main():
         run('set','viewport','390','844');shot('RATING-MOBILE.png')
         # Controls at bottom of a stacked mobile comparison must also fit.
         run('scrollintoview','#save');shot('RATING-MOBILE-CONTROLS.png')
+        js("Array.from(document.querySelectorAll('#queues button')).find(b=>b.firstChild.textContent==='Stone mosaic').click(); true")
+        run('scrollintoview','#stage');shot('RATING-LOOK-CLEAR-MOBILE.png')
         errors=run('errors')
         assert not errors.get('errors'),errors
         result=dict(ok=True,engine=binary,screenshots=shots,desktop=[1600,1100],mobile=[390,844],
-                    checks=['decoded images','native zoom','target flip','White A/B comparison','dark/light themes',
+                    checks=['decoded LOOK/CLEAR/target images','side-by-side geometry','L mode cycle','plinth front-face default','optics and greenery queues','native zoom','target flip','White A/B comparison','dark/light themes',
                             'no horizontal overflow','mobile rating controls','no page errors'],read_only=True)
         atomic_json(args.output/'RATING-VISUAL.json',result)
         print(json.dumps(result,indent=2))
