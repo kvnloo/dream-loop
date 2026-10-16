@@ -3,6 +3,10 @@
   "title": "Dream-loop v2 observation SIDE-CAR; not legacy rounds.jsonl",
   "type": "object",
   "properties": {
+    "meta_trial": {
+      "$ref": "meta-trial.schema.json",
+      "description": "Optional cross-trial learning payload linked by trial_id=node_id. Does not relax any v2 evidence requirement."
+    },
     "event": {
       "const": "discovery_observation"
     },
