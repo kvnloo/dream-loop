@@ -63,55 +63,7 @@ def infer_history(rows, anchors, raw):
     return result
 
 
-class Catalog:
-    def __init__(self, data):
-        self.data = Path(data)
-        self.assets = {}
-        self.candidates = []
-
-    def asset(self, path, provenance=None):
-        path = Path(path).resolve()
-        if not path.is_file():
-            raise ValueError('Missing catalog image '+str(path))
-        digest = ml.digest(path)
-        key = hashlib.sha256((str(path)+'\0'+digest).encode()).hexdigest()[:24]
-        if key not in self.assets:
-            with Image.open(path) as image:
-                size = list(image.size)
-            self.assets[key] = dict(path=str(path), sha256=digest, size=size,
-                                    provenance=str(provenance) if isinstance(provenance, Path) else provenance)
-        return '/assets/'+key
-
-    def crop(self, path, box, provenance):
-        path = Path(path)
-        key = hashlib.sha256((ml.digest(path)+json.dumps(box)).encode()).hexdigest()[:24]
-        out = self.data/'rating-assets'/(key+'.png')
-        if not out.exists():
-            out.parent.mkdir(parents=True, exist_ok=True)
-            with Image.open(path) as im:
-                im.crop(tuple(box)).save(out)
-        return self.asset(out, dict(source=str(path), box=box, resampled=False, receipt=str(provenance)))
-
-    def view(self, path, target, kind, region='main', metadata=None, provenance=None):
-        metadata = metadata or {}
-        full = metadata.get('full_frame') or metadata.get('full_resolution')
-        box = metadata.get('pixel_box_top_left') or metadata.get('box') or metadata.get('border_pixels')
-        target_url = self.asset(target, provenance)
-        if full and box:
-            with Image.open(target) as im:
-                tw, th = im.size
-            target_box = [round(box[i] * (tw/full[0] if i % 2 == 0 else th/full[1])) for i in range(4)]
-            target_url = self.crop(target, target_box, provenance)
-        return dict(kind=kind, region=region, image=self.asset(path, provenance), target=target_url,
-                    target_note='Source-resolution reference only; no 201 MP or 1 GP target truth.',
-                    receipt=str(provenance or ''), full_frame=full, box=box)
-
-    def add(self, row, queue, title, views, other=None, comparisons=None):
-        if not views:
-            raise ValueError('No images for '+row['trial_id'])
-        self.candidates.append(dict(trial_id=row['trial_id'], element=row['element'], queue=queue,
-            title=title, hypothesis=row['hypothesis'], views=views, compare_to=other,
-            comparisons=comparisons or [], mechanism=row['mechanism_class']))
+from catalog import Catalog
 
 
 def seed(data):

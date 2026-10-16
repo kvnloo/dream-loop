@@ -9,6 +9,7 @@ import hashlib
 import html
 import json
 import math
+import os
 from pathlib import Path
 import random
 import statistics
@@ -17,7 +18,8 @@ import time
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DATA = Path('/mnt/zer0models/project-artifacts/quackles/process/meta-loop')
+DEFAULT_DATA = Path(os.environ.get('OWNER_REVIEW_DATA') or
+                    str(Path(os.environ.get('XDG_CACHE_HOME') or Path.home()/'.cache')/'owner-review')).expanduser()
 MECHANISMS = ('geometry', 'procedural_shader', 'traced_vector', 'projection_paint',
               'ai_udim', 'layer_stack', 'lighting', 'post', 'generated_vector', 'unknown')
 
@@ -61,17 +63,9 @@ _VALIDATOR = None
 def validate_trial(row):
     global _VALIDATOR
     if _VALIDATOR is None:
-        from jsonschema import Draft202012Validator, FormatChecker
-        from referencing import Registry, Resource
-        base = json.loads((ROOT/'templates/rounds.schema.json').read_text())
-        meta = json.loads((ROOT/'templates/meta-trial.schema.json').read_text())
-        registry = Registry().with_resources([
-            ('https://dream-loop.local/rounds.schema.json', Resource.from_contents(base)),
-            ('https://dream-loop.local/meta-trial.schema.json', Resource.from_contents(meta))])
-        _VALIDATOR = Draft202012Validator(meta, registry=registry, format_checker=FormatChecker())
-    problems = list(_VALIDATOR.iter_errors(row))
-    if problems:
-        raise ValueError('; '.join(e.message for e in problems))
+        from trial_schema import load_validator
+        _VALIDATOR = load_validator()
+    _VALIDATOR(row)
     required = ('event_id', 'trial_id', 'run_id', 'lane', 'parents', 'element',
                 'defect_id', 'hypothesis', 'mechanism_class', 'parameters', 'cost',
                 'artifacts', 'metrics', 'self_review', 'judge_verdicts', 'owner_reaction', 'status')
@@ -199,9 +193,11 @@ def learn(rows, calibrations):
     for (element, mechanism), group in sorted(groups.items()):
         values = dict(owner_accept=[], owner_preference=[], judge_win=[], historical_keep=[], max_zoom_pass=[])
         for row in group:
-            preference = (row.get('owner_label', {}).get('pairwise') or {}).get('preference')
-            if preference in ('candidate', 'other'):
-                values['owner_preference'].append(int(preference == 'candidate'))
+            active_labels = row.get('owner_labels_by_aspect', {'overall': row.get('owner_label', {})})
+            preferences = {(label.get('pairwise') or {}).get('preference')
+                           for label in active_labels.values() if label.get('pairwise')}
+            if len(preferences) == 1 and next(iter(preferences)) in ('candidate', 'other'):
+                values['owner_preference'].append(int(next(iter(preferences)) == 'candidate'))
             owner, judge = owner_outcome(row), judge_outcome(row, calibrations)
             if owner is not None:
                 values['owner_accept'].append(owner)
@@ -213,6 +209,9 @@ def learn(rows, calibrations):
             if gate in ('pass', 'fail') and row.get('artifacts_verified') and row['metrics'].get('max_zoom_evidence'):
                 values['max_zoom_pass'].append(int(gate == 'pass'))
         stats: dict[str, Any] = {key: posterior(sum(v), len(v)-sum(v)) for key, v in values.items()}
+        stats['owner_aspects'] = count_owner_aspects(
+            label for row in group for label in row.get('owner_labels_by_aspect', {}).values()
+            if label.get('scope', 'trial') != 'trial')
         stats['trials'] = len(group)
         stats['implementation_failures'] = sum(x.get('failure_class') == 'implementation' for x in group)
         for kind in ('gpu_seconds', 'wall_seconds'):
@@ -519,74 +518,170 @@ def verify_artifacts(rows):
     return list(checked.values())
 
 
+OWNER_VERDICTS = ('accept', 'reject', 'maybe', 'lock', 'direction')
+
+
+def validate_chat_source(label):
+    for key in ('quote', 'aspect'):
+        if not isinstance(label.get(key), str) or not label[key].strip():
+            raise ValueError('missing chat '+key)
+    receipt = label.get('source_receipt')
+    if not isinstance(receipt, dict) or any(not isinstance(receipt.get(k), str) or not receipt[k].strip()
+            for k in ('kind', 'path', 'session_id', 'message_id')):
+        raise ValueError('invalid source_receipt')
+    if label.get('mapping_confidence') not in ('high', 'medium', 'low'):
+        raise ValueError('invalid mapping_confidence')
+    if not isinstance(label.get('mapping_evidence'), list):
+        raise ValueError('mapping_evidence must be a list')
+    if 'defect_id' not in label or (label['defect_id'] is not None
+            and (not isinstance(label['defect_id'], str) or not label['defect_id'].strip())):
+        raise ValueError('defect_id must be a string or null')
+
+
 def validate_owner_label(label, trials):
-    """Owner events overlay trials; never grant a producer lane new ownership."""
-    if not isinstance(label, dict) or label.get('event') != 'owner_label' or label.get('schema_version') != 1:
+    """Validate evidence at intake without inventing a trial binding or rating."""
+    if not isinstance(label, dict) or label.get('event') != 'owner_label' or (type(label.get('schema_version')) is not int or label['schema_version'] != 1):
         raise ValueError('unsupported owner label schema')
-    for key in ('event_id', 'trial_id', 'element', 'timestamp'):
-        if not isinstance(label.get(key), str) or not label[key]:
+    for key in ('event_id', 'element', 'timestamp'):
+        if not isinstance(label.get(key), str) or not label[key].strip():
             raise ValueError('missing owner label '+key)
-    if label.get('source') != 'owner-ui' or label.get('status') != 'confirmed':
-        raise ValueError('only explicit confirmed owner-ui labels may enter learning')
-    if label.get('verdict') not in ('accept', 'reject', 'maybe'):
+    chat = label.get('source') == 'chat-backfill'
+    if (label.get('source'), label.get('status')) not in (('owner-ui', 'confirmed'), ('chat-backfill', 'backfilled')):
+        raise ValueError('unsupported owner label source/status')
+    if label.get('verdict') not in OWNER_VERDICTS:
         raise ValueError('invalid owner verdict')
-    # Older append-only labels remain valid; new UI writes require this field.
     if 'judged_on' in label and label['judged_on'] not in ('look', 'clear', 'both'):
         raise ValueError('invalid judged_on')
+    if 'aspect' in label and (not isinstance(label['aspect'], str) or not label['aspect'].strip()):
+        raise ValueError('invalid aspect')
     stars = label.get('stars')
-    if type(stars) is not int or not 1 <= stars <= 5:
-        raise ValueError('stars must be 1..5')
+    if chat:
+        validate_chat_source(label)
+        if 'stars' not in label or stars is not None:
+            raise ValueError('chat stars must be null')
+    elif stars is None and label.get('confirmed_from'):
+        validate_chat_source(label)
+        if not isinstance(label['confirmed_from'], str) or not label['confirmed_from'].strip():
+            raise ValueError('invalid confirmed_from')
+        if not isinstance(label.get('source_timestamp'), str):
+            raise ValueError('source_timestamp must be a UTC timestamp')
+        source_stamp = datetime.fromisoformat(label['source_timestamp'].replace('Z', '+00:00'))
+        if source_stamp.utcoffset() is None or source_stamp.utcoffset().total_seconds() != 0:
+            raise ValueError('chat source timestamp requires UTC')
+    elif type(stars) is not int or not 1 <= stars <= 5:
+        raise ValueError('stars must be 1..5, or null when confirming chat evidence')
     if not isinstance(label.get('note', ''), str) or len(label.get('note', '')) > 12000:
         raise ValueError('invalid note')
-    if label.get('scope', 'trial') not in ('trial', 'component'):
+    scope = label.get('scope', 'trial')
+    if scope not in ('trial', 'component', 'element'):
         raise ValueError('invalid label scope')
+    if chat and 'scope' not in label:
+        raise ValueError('missing chat scope')
     stamp = datetime.fromisoformat(label['timestamp'].replace('Z', '+00:00'))
-    if stamp.tzinfo is None:
-        raise ValueError('owner timestamp requires timezone')
-    row = trials.get(label['trial_id'])
-    if not row or row.get('source', {}).get('evidence_only'):
-        raise ValueError('owner label must identify a real trial')
-    if row['element'] != label['element']:
-        raise ValueError('owner element does not match trial')
+    if stamp.utcoffset() is None or (chat and stamp.utcoffset().total_seconds() != 0):
+        raise ValueError('owner timestamp requires timezone; chat requires UTC')
+    tid = label.get('trial_id')
+    if 'trial_id' not in label or (tid is None and scope != 'element'):
+        raise ValueError('null trial_id requires element scope')
+    row = None
+    if tid is not None:
+        if not isinstance(tid, str):
+            raise ValueError('invalid trial_id')
+        row = trials.get(tid)
+        if not row or row.get('source', {}).get('evidence_only'):
+            raise ValueError('owner label must identify a real trial')
+        if row['element'] != label['element']:
+            raise ValueError('owner element does not match trial')
     pair = label.get('pairwise')
     if pair is not None:
         if not isinstance(pair, dict) or pair.get('preference') not in ('candidate', 'other', 'tie'):
             raise ValueError('invalid pairwise preference')
-        other = trials.get(pair.get('other_trial_id'))
-        if not other or other['trial_id'] == row['trial_id'] or other.get('source', {}).get('evidence_only'):
+        other_id = pair.get('other_trial_id')
+        other = trials.get(other_id) if isinstance(other_id, str) else None
+        if not row or not other or other['trial_id'] == row['trial_id'] or other.get('source', {}).get('evidence_only'):
             raise ValueError('pairwise requires another real trial')
     json_text(label)
 
 
-def apply_owner_labels(rows, labels, receipt_path):
-    rows = copy.deepcopy(rows)
+def reduce_owner_labels(rows, labels):
     trials = {r['trial_id']: r for r in rows}
-    errors, seen = [], {}
-    for row in rows:
-        if 'owner_reaction_before_ui' in row:
-            row['owner_reaction'] = copy.deepcopy(row['owner_reaction_before_ui'])
-        row.pop('owner_label_history', None)
-        row.pop('owner_label', None)
+    history, effective, errors, seen = [], {}, [], {}
+    sources = {l.get('event_id'): l for l in labels if isinstance(l, dict)
+               and isinstance(l.get('event_id'), str) and l.get('source') == 'chat-backfill'}
     for label in labels:
         try:
             validate_owner_label(label, trials)
+            if label.get('source') == 'owner-ui' and label.get('confirmed_from'):
+                original = sources.get(label['confirmed_from'])
+                if original is None:
+                    raise ValueError('Unknown chat confirmation source')
+                validate_owner_label(original, trials)
+                for key in ('trial_id', 'element', 'quote', 'source_receipt', 'scope', 'aspect',
+                            'defect_id', 'mapping_confidence', 'mapping_evidence'):
+                    if label.get(key) != original.get(key):
+                        raise ValueError('Confirmation changed source '+key)
+                if label.get('source_timestamp') != original['timestamp']:
+                    raise ValueError('Confirmation changed source timestamp')
             encoded = json_text(label)
             if label['event_id'] in seen:
                 if seen[label['event_id']] != encoded:
                     raise ValueError('owner event_id conflict '+label['event_id'])
                 continue
             seen[label['event_id']] = encoded
-            row = trials[label['trial_id']]
-            row.setdefault('owner_reaction_before_ui', copy.deepcopy(row['owner_reaction']))
-            row.setdefault('owner_label_history', []).append(copy.deepcopy(label))
-            row['owner_label'] = copy.deepcopy(label)
-            # Scoped historical feedback is not blanket acceptance of the scene.
-            if label.get('scope', 'trial') == 'trial':
-                row['owner_reaction'] = dict(
-                    status={'accept': 'approved', 'reject': 'rejected', 'maybe': 'uncertain'}[label['verdict']],
-                    receipt=str(receipt_path)+'#'+label['event_id'])
+            history.append(copy.deepcopy(label))
+            key = (label['element'], label['trial_id'], label.get('aspect', 'overall'))
+            if label['trial_id'] is None:
+                key += (label.get('confirmed_from') or label['event_id'],)
+            previous = effective.get(key)
+            if previous is None or label['source'] == 'owner-ui' or previous['source'] != 'owner-ui':
+                effective[key] = copy.deepcopy(label)
         except (ValueError, TypeError, KeyError) as exc:
             errors.append('owner label: '+str(exc))
+    return history, effective, errors
+
+
+def count_owner_aspects(labels):
+    counts = {}
+    for label in labels:
+        aspect = label.get('aspect', 'overall')
+        bucket = counts.setdefault(aspect, {v: 0 for v in OWNER_VERDICTS})
+        bucket[label['verdict']] += 1
+    return counts
+
+
+def owner_evidence_summary(rows, labels):
+    history, effective, errors = reduce_owner_labels(rows, labels)
+    unbound = [label for label in effective.values() if label['trial_id'] is None]
+    elements = sorted({label['element'] for label in unbound})
+    return dict(history=history, unbound_labels=unbound, errors=errors,
+        element_only={element: count_owner_aspects(l for l in unbound if l['element'] == element)
+                      for element in elements})
+
+
+def apply_owner_labels(rows, labels, receipt_path):
+    rows = copy.deepcopy(rows)
+    history, effective, errors = reduce_owner_labels(rows, labels)
+    for row in rows:
+        if 'owner_reaction_before_ui' in row:
+            row['owner_reaction'] = copy.deepcopy(row['owner_reaction_before_ui'])
+        for key in ('owner_label_history', 'owner_label', 'owner_labels_by_aspect'):
+            row.pop(key, None)
+        bound = [l for l in history if l['trial_id'] == row['trial_id']]
+        active = {key[2]: label for key, label in effective.items() if key[1] == row['trial_id']}
+        if not bound:
+            continue
+        row.setdefault('owner_reaction_before_ui', copy.deepcopy(row['owner_reaction']))
+        row['owner_label_history'] = bound
+        row['owner_labels_by_aspect'] = active
+        active_ids = {l['event_id'] for l in active.values()}
+        ordered = [l for l in bound if l['event_id'] in active_ids]
+        row['owner_label'] = copy.deepcopy(ordered[-1])
+        trial_labels = [l for l in ordered if l.get('scope', 'trial') == 'trial']
+        if trial_labels:
+            label = trial_labels[-1]
+            row['owner_reaction'] = dict(
+                status={'accept': 'approved', 'reject': 'rejected'}.get(label['verdict'], 'uncertain'),
+                receipt=str(receipt_path)+'#'+label['event_id'])
     return rows, errors
 
 
@@ -639,6 +734,7 @@ def ingest(data, evals=None):
     trials, issues = materialize(events)
     errors.extend(issues)
     trials, issues = apply_owner_labels(trials, labels, data/'events/owner.jsonl')
+    write_json(data/'owner-evidence.json', owner_evidence_summary(trials, labels))
     write_json(data/'superseded-intake.json', superseded)
     errors.extend(issues)
     artifact_receipts = verify_artifacts(trials)
@@ -686,10 +782,14 @@ def publish_materialized(data, rows, errors):
     data = Path(data)
     registry = data/'calibration.json'
     calibrations = json.loads(registry.read_text()).get('registry', {}) if registry.exists() else {}
+    labels, label_errors = read_jsonl(data/'events/owner.jsonl')
+    owner_evidence = owner_evidence_summary(rows, labels)
+    write_json(data/'owner-evidence.json', owner_evidence)
+    errors = list(dict.fromkeys(errors + label_errors + owner_evidence['errors']))
     payoffs = learn(rows, calibrations)
     replay_result = replay(rows)
     recipes = recipe_index(rows, calibrations, data, integrity_ok=not errors)
-    elements = sorted(set(r['element'] for r in rows) | {'night-banner', 'night-stone'})
+    elements = sorted(set(r['element'] for r in rows) | set(owner_evidence['element_only']) | {'night-banner', 'night-stone'})
     plans = {element: plan(rows, element, calibrations) for element in elements}
     if errors:
         for value in plans.values():
@@ -741,96 +841,18 @@ def publish_materialized(data, rows, errors):
 
 
 def write_report(data, rows, summary, plans, replay_result, recipes):
-    def load(name, default):
-        path = data/name
-        return json.loads(path.read_text()) if path.exists() else default
-    anchors = load('owner-anchors.json', [])
-    calibration = load('calibration.json', {})
-    artifact_checks = load('artifact-verification.json', [])
-    agreement = calibration.get('heldout_agreement', {})
-    lines = ['# Blender meta-learning loop — executed report', '',
-        'Updated: '+summary['generated_at'], '',
-        '## Plain answer', '',
-        '**Yes: a running archive → payoff learner → portfolio recommendation loop now exists.** '
-        'It ingests our history and live lane events, updates separate Beta posteriors and costs, '
-        'retains failures, checks recipe evidence, and writes the next batch. '
-        '**No: this has not demonstrated that a sophisticated Dream-RSI scheduler beats a simple baseline, '
-        'or that the judge can replace owner decisions.** It changes experiment selection, not model weights.', '',
-        '## What ran', '',
-        f"- {summary['historical_trial_count']} imported historical round/trial records; {len(anchors)} owner-label receipts preserved separately.",
-        f"- {summary['trial_count']} materialized trial records total; {summary['evidence_document_count']} additional report-only evidence records are excluded from payoff denominators.",
-        f"- {summary['live_trial_count']} live/transfer trials; revisions count once. See `ledger.json`, `ingest.json`, and `events/`.",
-        f"- {len(artifact_checks)} distinct path/hash checks; {sum(not a['ok'] for a in artifact_checks)} missing/drifted artifacts at this refresh. A stale artifact cannot qualify a recipe.",
-        '- The native `rounds.schema.json` is extended with an optional meta payload; existing discovery-tree/v1 APIs and historical ledgers are unchanged.',
-        '- Per-lane logs remain owned by their workers. A valid formal event supersedes partial pre-contract intake without duplicating the trial; all original rows remain archived.', '',
-        '## What the loop learned from the history', '',
-        f"- Reliable normalized owner-accept observations: **{summary['owner_accept_observations']}**. Qualified judge-win observations: **{summary['qualified_judge_observations']}**. "
-        'Historical kept changes and owner preference quotes are not silently converted into acceptance.',
-        '- The prior AI-paint trials demonstrate real UV attachment and locally sharper detail, but the primary report rejects full-object/1GP fidelity. Receiving UDIM capacity does not establish source-detail coverage. These are retained negative gate observations, not owner rejections.',
-        '- The fidelity audit shows that crisp procedural noise can coexist with blurry or malformed artwork. Texture sampling, form/identity and appearance need separate gates; a sharpness number alone is not the objective.',
-        '- The existing plateau replay lost later kept improvements. The online loop therefore requests an owner checkpoint or a mechanism switch after two evidenced same-defect nonwins, never declares the scene finished.',
-        '- Ambiguous generic material and coupled historical changes remain `unknown` rather than being invented as procedural-shader trials. Costs remain phase-scoped, with GPU utilization unknown unless actually recorded.', '',
-        '## Prefix-only Dream-RSI-style replay', '',
-        '| Policy | Matched logged actions | Unsupported | Known rewards | Kept on matched subset |',
-        '|---|---:|---:|---:|---:|']
-    for name, value in replay_result['policies'].items():
-        lines.append(f"| {name} | {value['matched']} | {value['unsupported']} | {value['observed_rewards']} | {value['wins']} |")
-    lines += ['', replay_result['conclusion'], '',
-        f"Excluded for unknown mechanism: {replay_result['excluded_unknown_mechanism']}; known mechanism but no explicit original-ledger order: {replay_result['excluded_unknown_order']}.",
-        'The replay tests the coarse breadth/depth scheduling component, not every pending-work/repair rule of the online planner. '
-        'There is no fabricated outcome for an untried branch, no estimated GPU saving, and no policy superiority claim.', '',
-        '## Judge calibration', '',
-        f"Post-hoc leave-one-family-out agreement: **{agreement.get('correct', 'unknown')}/{agreement.get('n', 'unknown')}**. "
-        'The held-out family is excluded from rubric selection, but the original briefs were reconstructed with owner knowledge. '
-        'This is not prospective held-out generalization. Automatic judge-based recipe promotion remains disabled.',
-        'The anchor bridge prepares frozen split briefs and swapped A/B packets through the existing `ab_judge.run`. '
-        'Preparation is not execution. `judge-packets/index.json` records whether fresh calls were actually made; '
-        'the agreement above is recomputed from the prior validated result archive, not attributed to newly prepared packets.', '',
-        '## Live lane observations', '']
-    for lane in ('banner-traced','banner-generator','layer-stack'):
-        scoped = [r for r in rows if r['lane']==lane]
-        statuses = defaultdict(int)
-        for row in scoped:
-            statuses[row['status']] += 1
-        lines.append(f"### {lane}: {len(scoped)} trials — {dict(statuses)}")
-        for row in scoped:
-            review = row['self_review'].get('notes','')
-            lines.append(f"- `{row['trial_id']}` / `{mechanism_key(row)}`: {review[:700] or 'No adjudicated self-review yet.'}")
-        lines.append('')
-    lines += ['## Next batch', '',
-        'Four slots per element, two explicitly reserved for exploration. Pending representations are not redispatched. '
-        'No qualified best means evidence/interpretation repair; fewer than two gated recipes means recombination is withheld. '
-        'These are proposals under the owner brief, not automatic Blender edits.', '']
-    for element in ('night-banner','night-stone'):
-        value = plans[element]
-        lines += ['### '+element, '']
-        for index, slot in enumerate(value['batch'],1):
-            lines.append(f"{index}. **{slot['action']} / {slot['mechanism_class'] or 'reserved'}** — {slot['reason']}")
-        if value.get('blocked'):
-            lines.append('BLOCKED: '+value['blocked'])
-        lines.append('')
-    lines += ['## Recipe library and actual transfer', '',
-        f"{len(recipes)} executable-source recipe cards; **{sum(c['status']=='qualified' for c in recipes)} qualified winners**. "
-        'Candidate cards are explicitly not accepted recipes. Promotion needs a winner plus a verified native max-zoom/crop receipt and a hash-bound script.',
-        '`recipes/procedural_ink.py` in the source worktree generalizes the prior banner dot mechanism. '
-        'The disposable CPU-only Blender transfer run applies it to the real `SLP front folded facets` stone receiver. '
-        '`transfer/receipt.json` records import inertia, idempotence, unchanged receiver geometry and unchanged source `.blend` hash. '
-        'The rendered banner control shows dots; the full stone view undersamples them. This proves executable transfer, not a visual win or max-zoom pass.', '',
-        '## Limits and verification', '',
-        '- The system does not launch unbounded renders or automatically change production selections. New learning is from observations, not self-asserted critic success.',
-        '- Small dependent samples, nonrandom logging, missing chronology, unknown costs and coupled interventions prevent causal mechanism rankings. Beta intervals are descriptive, not an IID guarantee.',
-        '- Fresh prospective owner pairs and current native-density gates are still needed. The current archive cannot honestly supply those missing labels.',
-        '- Offline tests and full helper-suite receipts are in `tests-*.json`; the actual bpy transfer is a separate `transfer/receipt.json`. All source, report and render changes are local; no push or production-scene promotion.',
-        '- `polls.jsonl` lists actual refresh times. The bounded foreground watch stops with its caller; it does not claim ongoing background monitoring.', '',
-        '## Reproduce', '', '```sh',
-        'python /workspace/dream-loop-meta/scripts/meta_loop.py report --evals '+str(data.parent/'blender-mastery/evals'),
-        'python /workspace/dream-loop-meta/scripts/meta_loop.py next --element night-banner',
-        'python /workspace/dream-loop-meta/scripts/meta_loop.py next --element night-stone',
-        'python /workspace/dream-loop-meta/scripts/meta_loop.test.py',
-        '```', '',
-        'Source branch: `feat/blender-meta-loop`, isolated worktree `/workspace/dream-loop-meta`; the checked-out branch of `/workspace/dream-loop` is preserved. '
-        'See `references/meta-learning.md` in that worktree for exact contracts and limitations.']
-    (data/'REPORT.md').write_text('\n'.join(lines)+'\n')
+    """Describe this snapshot only; historical case studies belong in receipts."""
+    lines = ['# Meta-learning report', '', 'Updated: '+summary['generated_at'], '',
+             'Owner acceptance is trial scoped. Component and element feedback remains descriptive evidence. '
+             'Recommendations do not authorize scene or recipe promotion.', '']
+    for title, value in (('Snapshot', summary), ('Next batch', plans),
+                         ('Payoffs', json.loads((data/'payoffs.json').read_text())), ('Replay', replay_result), ('Recipes', recipes)):
+        lines += ['## '+title, '', '```json', json.dumps(value, indent=2, allow_nan=False), '```', '']
+    lines += ['## Limits', '',
+              'Unknown costs, unbound labels and unsupported replay actions remain unknown. '
+              'Qualified native image evidence and explicit owner decisions are required for promotion. '
+              'Read the event log and source receipts before interpreting descriptive counts.', '']
+    (data/'REPORT.md').write_text('\n'.join(lines))
 
 
 def calibrate(records) -> dict[str, Any]:
@@ -872,10 +894,10 @@ def prepare_anchor_judges(evals, output, execute=False):
         raise ValueError('; '.join(issues))
     eligible = [a for a in anchors if a.get('pairwise_eligible')]
     manifest = json.loads((evals/'calibration/manifest.json').read_text())
-    bindings = {'owner:72489':'day-antitile','owner:97126':'white-arch','owner:89861':'night-label'}
     receipts = []
     for anchor in eligible:
-        family = bindings.get(anchor['id'])
+        family = anchor.get('pair_id') or next((r['pair_id'] for r in manifest
+                  if r.get('owner_id') == anchor['id']), None)
         if not family:
             continue
         selected = next(r for r in manifest if r['pair_id']==family and r['evidence']=='both'
@@ -914,7 +936,7 @@ def main():
     commands = parser.add_subparsers(dest='command', required=True)
     for command in ('ingest', 'report'):
         p = commands.add_parser(command)
-        p.add_argument('--evals', type=Path)
+        p.add_argument('--evals', type=Path, default=Path(os.environ['OWNER_REVIEW_EVALS']).expanduser() if os.environ.get('OWNER_REVIEW_EVALS') else None)
     cal = commands.add_parser('calibrate')
     cal.add_argument('--evals', type=Path, required=True)
     cal.add_argument('--prepare-ab', type=Path)
@@ -925,7 +947,7 @@ def main():
     watch = commands.add_parser('watch')
     watch.add_argument('--interval', type=float, default=900)
     watch.add_argument('--polls', type=int, default=17)
-    watch.add_argument('--evals', type=Path)
+    watch.add_argument('--evals', type=Path, default=Path(os.environ['OWNER_REVIEW_EVALS']).expanduser() if os.environ.get('OWNER_REVIEW_EVALS') else None)
     args = parser.parse_args()
     if args.command == 'calibrate':
         records, errors = read_jsonl(args.evals/'calibration/results.jsonl')

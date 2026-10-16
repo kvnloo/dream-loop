@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from PIL import Image
+from synthetic_fixture import png
 import meta_loop as ml
 import owner_rating as ui
 
@@ -29,13 +29,13 @@ class LiveRating(unittest.TestCase):
             self.assertEqual([e['judged_on'] for e in ml.read_jsonl(data/'events/owner.jsonl')[0]], ['look', 'clear', 'both'])
 
     def test_http_does_not_serve_changed_pixels_under_old_asset_identity(self):
-        from seed_owner_rating import Catalog
+        from catalog import Catalog
         import threading
         import urllib.request
         import urllib.error
         with tempfile.TemporaryDirectory() as tmp:
             data=Path(tmp);path=data/'render.png'
-            Image.new('RGB',(20,30),'red').save(path)
+            png(path,20,30,(255,0,0))
             catalog=Catalog(data);url=catalog.asset(path)
             (data/'rating-catalog.json').write_text(json.dumps(dict(candidates=[],history=[],assets=catalog.assets)))
             app=ui.RatingApp(data);server=ui.make_server(app,0)
@@ -44,7 +44,7 @@ class LiveRating(unittest.TestCase):
                 base=f'http://127.0.0.1:{server.server_port}'
                 with urllib.request.urlopen(base+url) as response:
                     self.assertEqual(response.status,200)
-                Image.new('RGB',(20,30),'blue').save(path)
+                png(path,20,30,(0,0,255))
                 with self.assertRaises(urllib.error.HTTPError) as error:
                     urllib.request.urlopen(base+url)
                 self.assertEqual(error.exception.code,409)
@@ -53,12 +53,12 @@ class LiveRating(unittest.TestCase):
                 server.shutdown();server.server_close();thread.join()
 
     def test_replaced_image_gets_new_asset_identity(self):
-        from seed_owner_rating import Catalog
+        from catalog import Catalog
         with tempfile.TemporaryDirectory() as tmp:
             data=Path(tmp);path=data/'render.png'
-            Image.new('RGB',(20,30),'red').save(path)
+            png(path,20,30,(255,0,0))
             catalog=Catalog(data);before=catalog.asset(path)
-            Image.new('RGB',(20,30),'blue').save(path)
+            png(path,20,30,(0,0,255))
             after=catalog.asset(path)
             self.assertNotEqual(before,after)
             self.assertEqual(catalog.assets[after.split('/')[-1]]['sha256'],ml.digest(path))
@@ -69,9 +69,9 @@ class LiveRating(unittest.TestCase):
             root=Path(tmp); data=root/'meta-loop'; data.mkdir()
             night=root/'night-v2'; folder=night/'optics/D';folder.mkdir(parents=True)
             (night/'banner-generator').mkdir()
-            Image.new('RGB',(20,30)).save(root/'target.png')
+            png(root/'target.png')
             (night/'banner-generator/target-statistics.json').write_text(json.dumps({'target':str(root/'target.png')}))
-            image=folder/'render.png';Image.new('RGB',(20,30)).save(image)
+            image=folder/'render.png';png(image)
             receipt=folder/'receipt.json'
             receipt.write_text(json.dumps({'mode':'LOOK','renders':[dict(path=str(image),master=[20,30],border=None,dof=False)]}))
             row=ml.blank_trial('optics-D','optics','night-optics','post');row['status']='completed'
@@ -99,7 +99,7 @@ class LiveRating(unittest.TestCase):
             data, night = root/'meta-loop', root/'night-v2'
             (data/'events').mkdir(parents=True)
             (night/'banner-generator').mkdir(parents=True)
-            Image.new('RGB', (200, 300)).save(root/'target.png')
+            png(root/'target.png',200,300)
             (night/'banner-generator/target-statistics.json').write_text(json.dumps({'target':str(root/'target.png')}))
             (night/'stone-mosaic').mkdir()
             (night/'stone-mosaic/measurements.json').write_text(json.dumps({'regions':{'front':{'box':[80, 260, 130, 300]}}}))
@@ -112,7 +112,7 @@ class LiveRating(unittest.TestCase):
             row['metrics']['renders'] = []
             for mode in ('LOOK', 'CLEAR'):
                 path = folder/(mode+'.png')
-                Image.new('RGB', (200, 80), (30, 50, 70)).save(path)
+                png(path,200,80,(30,50,70))
                 row['artifacts'].append(dict(path=str(path), sha256=ml.digest(path)))
                 row['metrics']['renders'].append(dict(path=str(path), master=[200,300], box=[0,220,200,300], look=mode=='LOOK'))
             path = data/'events/stone-mosaic.jsonl'

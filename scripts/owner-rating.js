@@ -1,32 +1,37 @@
 'use strict';
 const $ = id => document.getElementById(id);
 let data, queue = 'banner', index = 0, kind = 'hero', region = '', zoomed = false, flipped = false, busy = false;
-let list = [], current = null, historyEntry = null, draft = {}, failedPayload = null;
+let list = [], current = null, historyEntry = null, chatEntry = null, draft = {}, failedPayload = null;
 const drafts = new Map();
-const labels = {banner:'Banner',stone:'Stone',stacks:'Layer stacks',white:'White arch','stone-mosaic':'Stone mosaic',optics:'Optics','banner-greenery':'Greenery',history:'Confirm history',unresolved:'Unresolved history'};
+const labels = {banner:'Banner',stone:'Stone',stacks:'Layer stacks',white:'White arch','stone-mosaic':'Stone mosaic',optics:'Optics','banner-greenery':'Greenery',chat:'From chat',elements:'Element evidence',history:'Confirm history',unresolved:'Unresolved history'};
 const kinds = {hero:'Hero',native:'Native', '201mp':'201 MP','1gp':'1 GP'};
 function text(id,value){$(id).textContent = value ?? '';}
 function status(message,error=false){text('status',message);$('status').classList.toggle('error',error);}
 function asset(url){return url ? data.assets[url.split('/').pop()] : null;}
 function reviewed(c){return data.labels.some(l=>l.trial_id===c.trial_id&&!l.history_id);}
-function key(){return queue+':'+(historyEntry?.id||current?.trial_id||index);}
-function remember(){if(current) drafts.set(key(),{...draft,note:$('note').value,pairChecked:$('pair').checked,otherId:$('other').value});}
+function key(){return queue+':'+(chatEntry?.event_id||historyEntry?.id||current?.trial_id||index);}
+function remember(){if(current||chatEntry) drafts.set(key(),{...draft,note:$('note').value,pairChecked:$('pair').checked,otherId:$('other').value});}
 function getCandidate(id){return data.candidates.find(c=>c.trial_id===id);}
 function option(value,name){const o=document.createElement('option');o.value=value;o.textContent=name;return o;}
+function entries(name){
+  if(name==='chat'||name==='elements')return data.labels.filter((l,i,all)=>l.source==='chat-backfill'&&
+    (name==='elements'?l.trial_id===null:l.trial_id!==null)&&all.findIndex(e=>e.event_id===l.event_id)===i);
+  if(name==='history'||name==='unresolved')return data.history.filter(h=>h.status===(name==='history'?'inferred':'unresolved'));
+  return data.candidates.filter(c=>c.queue===name||name==='stone'&&c.queue==='stacks'&&c.element==='night-stone');
+}
+function canSave(){return !!((current||chatEntry)&&(draft.stars||chatEntry)&&draft.verdict&&(draft.judged_on||chatEntry));}
 function buttons(){
   document.querySelectorAll('[data-verdict]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.verdict===draft.verdict)));
   [...$('stars').children].forEach((b,i)=>b.setAttribute('aria-pressed',String(i+1===draft.stars)));
-  $('save').disabled=busy||!current||!draft.stars||!draft.verdict||!draft.judged_on;
+  $('save').disabled=busy||!canSave();
   text('preference',draft.preference ? ({candidate:'Right preferred',other:'Left preferred',tie:'No preference'})[draft.preference] : 'No preference selected');
 }
 function selectQueue(name){remember();queue=name;index=0;renderQueue();}
 function renderQueue(){
-  list=queue==='history'||queue==='unresolved' ? data.history.filter(h=>h.status===(queue==='history'?'inferred':'unresolved')) :
-    data.candidates.filter(c=>c.queue===queue || queue==='stone'&&c.queue==='stacks'&&c.element==='night-stone');
+  list=entries(queue);
   $('queues').replaceChildren();
   for(const [id,name] of Object.entries(labels)){
-    const count=id==='history'||id==='unresolved'?data.history.filter(h=>h.status===(id==='history'?'inferred':'unresolved')).length:
-      data.candidates.filter(c=>c.queue===id||id==='stone'&&c.queue==='stacks'&&c.element==='night-stone').length;
+    const count=entries(id).length;
     const b=document.createElement('button');b.append(document.createTextNode(name));const s=document.createElement('span');s.textContent=count;b.append(s);
     b.classList.toggle('active',id===queue);b.onclick=()=>{if(!busy)selectQueue(id);};$('queues').append(b);
   }
@@ -34,13 +39,20 @@ function renderQueue(){
 }
 function render(){
   index=Math.max(0,Math.min(index,list.length-1));
+  chatEntry=queue==='chat'||queue==='elements'?list[index]:null;
   historyEntry=queue==='history'||queue==='unresolved'?list[index]:null;
   if(historyEntry){
     const pair=historyEntry.suggested_pairwise;
     const selected=pair?.candidate||historyEntry.trial_ids[0];
     current=getCandidate(selected)||null;
-  }else current=list[index]||null;
-  $('history').hidden=!historyEntry;
+  }else current=chatEntry?getCandidate(chatEntry.trial_id)||null:list[index]||null;
+  $('history').hidden=!(historyEntry||chatEntry);
+  $('binding').hidden=!!chatEntry;$('binding-label').hidden=!!chatEntry;
+  if(chatEntry){
+    text('history-status','From chat / '+chatEntry.timestamp+' / '+chatEntry.scope);
+    text('quote',chatEntry.quote);
+    text('evidence',JSON.stringify({source_receipt:chatEntry.source_receipt,mapping_confidence:chatEntry.mapping_confidence,mapping_evidence:chatEntry.mapping_evidence,defect_id:chatEntry.defect_id},null,2));
+  }
   if(historyEntry){
     text('history-status',historyEntry.status==='inferred'?'INFERRED / not yet an owner label':'UNRESOLVED / select a trial only if you recognize it');
     text('quote',historyEntry.quote);text('evidence',JSON.stringify({scope:historyEntry.scope,reason:historyEntry.reason,evidence:historyEntry.evidence,source:historyEntry.source},null,2));
@@ -48,28 +60,34 @@ function render(){
     $('binding').value=current?.trial_id||'';
   }
   const previous=drafts.get(key());
-  draft=previous||{stars:null,verdict:historyEntry?.suggested_verdict||null,note:'',preference:historyEntry?.suggested_pairwise?.preferred==='candidate'?'candidate':historyEntry?.suggested_pairwise?.preferred==='baseline'?'other':null};
+  draft=previous||{stars:null,aspect:chatEntry?.aspect||'overall',verdict:chatEntry?.verdict||historyEntry?.suggested_verdict||null,note:'',preference:chatEntry?.pairwise?.preference||(historyEntry?.suggested_pairwise?.preferred==='candidate'?'candidate':historyEntry?.suggested_pairwise?.preferred==='baseline'?'other':null)};
   if(previous?.boundId)current=getCandidate(previous.boundId)||current;
   if(historyEntry)$('binding').value=current?.trial_id||'';
+  $('aspect').value=draft.aspect||'overall';$('aspect').readOnly=!!chatEntry;
   $('note').value=draft.note;
-  $('pair').checked=draft.pairChecked??!!historyEntry?.suggested_pairwise;
+  $('pair').checked=draft.pairChecked??!!(chatEntry?.pairwise||historyEntry?.suggested_pairwise);
   if(current){
-    const other=historyEntry?.suggested_pairwise?.baseline||current.compare_to;
+    const other=chatEntry?.pairwise?.other_trial_id||historyEntry?.suggested_pairwise?.baseline||current.compare_to;
     $('other').replaceChildren(option('','Choose comparison…'),...data.candidates.filter(c=>c.trial_id!==current.trial_id&&c.queue!=='history-only').map(c=>option(c.trial_id,c.title)));
     // Historical baselines may not be in the current experimental queues.
     if(other&&!Array.from($('other').options).some(o=>o.value===other)){
-      const c=getCandidate(other);if(c)$('other').append(option(c.trial_id,c.title));
+      const c=getCandidate(other);if(c||chatEntry?.pairwise?.other_trial_id===other)$('other').append(option(other,c?.title||'Source comparison / '+other));
     }
     $('other').value=draft.otherId??other??'';
     text('title',current.title);text('hypothesis',current.hypothesis);text('eyebrow',labels[queue]+' / '+current.element);
-  }else{text('title',historyEntry?'Bind this historical quote':'Nothing in this queue');text('hypothesis','No trial is inferred. Choosing a trial is an explicit owner correction.');}
+  }else if(chatEntry){
+    const other=chatEntry.pairwise?.other_trial_id||'';
+    $('other').replaceChildren(option(other,other?'Source comparison / '+other:'No source comparison'));
+    $('other').value=other;
+    text('title',chatEntry.element+' / '+chatEntry.aspect);text('hypothesis',chatEntry.trial_id?'No catalog image bound to this trial. Review the quoted receipt.':'Element evidence / trial binding unknown');text('eyebrow',labels[queue]);}
+  else{text('title',historyEntry?'Bind this historical quote':'Nothing in this queue');text('hypothesis','No trial is inferred. Choosing a trial is an explicit owner correction.');}
   text('position',list.length?`${index+1} / ${list.length}`:'0 / 0');
-  const done=historyEntry?list.filter(h=>data.labels.some(l=>l.history_id===h.id)).length:list.filter(reviewed).length;
+  const done=chatEntry?list.filter(c=>data.labels.some(l=>l.confirmed_from===c.event_id)).length:historyEntry?list.filter(h=>data.labels.some(l=>l.history_id===h.id)).length:list.filter(reviewed).length;
   text('reviewed',`${done} reviewed`);
   $('prev').disabled=index===0;$('next').disabled=index>=list.length-1;
   if(current?.default_view){kind=current.default_view.kind;region=current.default_view.region;}
   flipped=false;zoomed=false;renderImages();buttons();
-  status(current?'Choose stars and a decision, then press Enter.':'Choose the correct trial above before rating.');
+  status(chatEntry?'Confirm the prefilled '+draft.verdict+' / '+draft.aspect+' with Enter. Quality is unrated unless you choose stars.':current?'Choose stars and a decision, then press Enter.':'Choose the correct trial above before rating.');
   try{localStorage.setItem('owner-review-position',JSON.stringify({queue,index}));}catch{}
 }
 function renderImages(){
@@ -83,9 +101,9 @@ function renderImages(){
   let available=views.filter(v=>v.kind===kind);
   if(!available.some(v=>v.region===region))region=available[0]?.region||'';
   const view=available.find(v=>v.region===region);
-  const modes=view?.look||view?.clear ? ['both','look','clear'].filter(m=>m==='both'?view.look&&view.clear:view[m]) : ['look','clear'];
+  const modes=!view?[]:view.look||view.clear ? ['both','look','clear'].filter(m=>m==='both'?view.look&&view.clear:view[m]) : ['look','clear'];
   const legacy=!!view&&!view.look&&!view.clear;
-  if(!modes.includes(draft.judged_on))draft.judged_on=legacy?'':modes[0];
+  if(!modes.includes(draft.judged_on))draft.judged_on=legacy||!view?'':modes[0];
   $('judge-mode').replaceChildren(...(legacy?[option('','Identify legacy optics…')]:[]),...modes.map(m=>option(m,m==='both'?'Both / side by side':m.toUpperCase())));
   $('judge-mode').value=draft.judged_on||'';
   const mode=draft.judged_on;
@@ -141,13 +159,13 @@ function setStars(n){draft.stars=n;failedPayload=null;buttons();status('Draft qu
 function setVerdict(v){draft.verdict=v;failedPayload=null;buttons();status('Draft decision: '+v+'. Enter to save.');}
 function prefer(value){if(!$('other').value){status('Choose a comparison candidate first.',true);return;}$('pair').checked=true;draft.preference=value;failedPayload=null;renderImages();buttons();}
 async function save(){
-  if(busy||!current||!draft.stars||!draft.verdict||!draft.judged_on)return;
+  if(busy||!canSave())return;
   if($('pair').checked&&!draft.preference){status('Choose left, right, or tie before saving a comparison.',true);return;}
   busy=true;buttons();status('Saving locally and refreshing next batch…');
   const request=failedPayload||{event_id:'ui-'+(globalThis.crypto?.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)),
-    judged_on:draft.judged_on,trial_id:current.trial_id,element:current.element,stars:draft.stars,verdict:draft.verdict,note:$('note').value,
+    judged_on:draft.judged_on||null,trial_id:chatEntry?chatEntry.trial_id:current.trial_id,element:chatEntry?.element||current.element,stars:draft.stars,verdict:draft.verdict,note:$('note').value,
     pairwise:$('pair').checked?{other_trial_id:$('other').value,preference:draft.preference}:null,
-    scope:historyEntry?'component':'trial',history_id:historyEntry?.id||null};
+    aspect:draft.aspect||'overall',scope:chatEntry?.scope||(historyEntry?'component':'trial'),confirmed_from:chatEntry?.event_id||null,history_id:historyEntry?.id||null};
   try{
     const response=await fetch('/api/label',{method:'POST',headers:{'Content-Type':'application/json','X-Owner-Token':data.token},body:JSON.stringify(request)});
     const result=await response.json();if(!response.ok)throw new Error(result.error||'Save failed');
@@ -157,7 +175,7 @@ async function save(){
     for(const item of result.next.batch){const div=document.createElement('div'),strong=document.createElement('strong'),p=document.createElement('p');strong.textContent=item.action.replaceAll('_',' ')+' / '+(item.mechanism_class||'evidence');p.textContent=item.reason;div.append(strong,p);$('next-batch').append(div);}
     busy=false;
     if(index<list.length-1){index++;render();}else{render();}
-    status('Saved '+request.verdict+' / '+request.stars+' stars. Next batch refreshed'+(index===list.length-1?' (last item in queue).':'.'));
+    status('Saved '+request.verdict+' / '+(request.stars===null?'unrated':request.stars+' stars')+'. Next batch refreshed'+(index===list.length-1?' (last item in queue).':'.'));
   }catch(error){failedPayload=request;busy=false;status('Not confirmed: '+error.message+'. Retry Save with the same request ID.',true);}
   buttons();
 }
@@ -171,6 +189,7 @@ $('zoom').onclick=()=>{if(!zoomed&&current){const max=current.views.find(v=>v.ki
 $('flip').onclick=()=>{flipped=!flipped;renderImages();};
 $('prefer-left').onclick=()=>prefer('other');$('prefer-right').onclick=()=>prefer('candidate');$('tie').onclick=()=>prefer('tie');
 $('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('save').onclick=save;
+$('aspect').oninput=()=>{draft.aspect=$('aspect').value;failedPayload=null;};
 $('note').oninput=()=>{draft.note=$('note').value;failedPayload=null;};
 $('theme').onclick=()=>document.body.classList.toggle('light');
 for(let n=1;n<=5;n++){const b=document.createElement('button');b.textContent=n;b.setAttribute('aria-label',n+' star'+(n===1?'':'s'));b.onclick=()=>setStars(n);$('stars').append(b);}
@@ -199,11 +218,10 @@ async function refreshCatalog(){
       value.polling?.active?'Auto-add: every 15 minutes for this four-hour server window.':'Auto-add window complete; restart server to watch again.');
     if(busy||failedPayload)return;
     if(value.generated_at!==data.generated_at){
-      remember();const id=historyEntry?.id||current?.trial_id;
+      remember();const id=chatEntry?.event_id||historyEntry?.id||current?.trial_id;
       data=value;
-      const entries=queue==='history'||queue==='unresolved'?data.history.filter(h=>h.status===(queue==='history'?'inferred':'unresolved')):
-        data.candidates.filter(c=>c.queue===queue||queue==='stone'&&c.queue==='stacks'&&c.element==='night-stone');
-      const found=entries.findIndex(c=>(c.id||c.trial_id)===id);if(found>=0)index=found;
+      const updated=entries(queue);
+      const found=updated.findIndex(c=>(c.event_id||c.id||c.trial_id)===id);if(found>=0)index=found;
       text('connection','Local / '+data.candidates.filter(c=>c.queue!=='history-only').length+' candidates');
       renderQueue();
     }

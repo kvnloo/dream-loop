@@ -3,7 +3,6 @@
 from __future__ import annotations
 import argparse
 import fcntl
-import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import mimetypes
@@ -15,6 +14,7 @@ import threading
 import time
 from urllib.parse import urlsplit
 import meta_loop as ml
+from catalog import asset_content
 
 
 def atomic_json(path, value):
@@ -112,10 +112,26 @@ class RatingApp:
         event_id = payload.get('event_id')
         if not isinstance(event_id, str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,100}', event_id):
             raise ValueError('event_id must be a 1..100 character request identifier')
-        if payload.get('judged_on') not in ('look', 'clear', 'both'):
+        path = self.data/'events/owner.jsonl'
+        existing, errors = ml.read_jsonl(path)
+        if errors:
+            raise ValueError('; '.join(errors))
+        confirmation = payload.get('confirmed_from')
+        source = None
+        if confirmation is not None:
+            source = next((e for e in existing if isinstance(e, dict) and e.get('event_id') == confirmation
+                           and e.get('source') == 'chat-backfill'), None)
+            if source is None:
+                raise ValueError('Unknown chat receipt')
+            ml.validate_owner_label(source, trials)
+            for key in ('trial_id', 'element', 'scope', 'aspect'):
+                if payload.get(key) != source[key]:
+                    raise ValueError('Confirmation must preserve source '+key)
+        unbound = source is not None and source['trial_id'] is None
+        if payload.get('judged_on') not in ('look', 'clear', 'both') and not (source is not None and payload.get('judged_on') is None):
             raise ValueError('judged_on must be look, clear or both')
         candidate = next((c for c in self.catalog['candidates'] if c['trial_id']==payload.get('trial_id')), None)
-        if candidate:
+        if candidate and payload.get('judged_on') is not None:
             available = {m for v in candidate['views'] for m in ('look','clear') if v.get(m)}
             required = {'look','clear'} if payload['judged_on']=='both' else {payload['judged_on']}
             if available and not required <= available:
@@ -123,8 +139,20 @@ class RatingApp:
         label = {k: payload.get(k) for k in ('event_id', 'trial_id', 'element', 'verdict', 'stars', 'pairwise', 'judged_on')}
         label.update(event='owner_label', schema_version=1, timestamp=ml.now(),
                      source='owner-ui', status='confirmed', note=payload.get('note', ''),
-                     scope=payload.get('scope', 'trial'))
+                     scope=payload.get('scope', 'trial'), aspect=payload.get('aspect', 'overall'))
+        if source is not None:
+            label.update({k:source[k] for k in ('quote', 'source_receipt', 'mapping_confidence',
+                          'mapping_evidence', 'scope', 'aspect', 'defect_id')})
+            label.update(confirmed_from=source['event_id'], source_timestamp=source['timestamp'])
+            if source.get('pairwise') is not None:
+                label['source_pairwise'] = source['pairwise']
+                if 'pairwise' not in payload:
+                    label['pairwise'] = source['pairwise']
+        if unbound or (source is not None and payload.get('judged_on') is None):
+            label.pop('judged_on', None)
         history_id = payload.get('history_id')
+        if history_id and source is not None:
+            raise ValueError('Choose one source receipt')
         if history_id:
             history = next((h for h in self.catalog['history'] if h['id'] == history_id), None)
             if not history:
@@ -135,10 +163,6 @@ class RatingApp:
             label['scope'] = 'component'
             label['scope_note'] = history.get('scope') or 'Historical feedback; no whole-trial acceptance inferred'
         ml.validate_owner_label(label, trials)
-        path = self.data/'events/owner.jsonl'
-        existing, errors = ml.read_jsonl(path)
-        if errors:
-            raise ValueError('; '.join(errors))
         previous = next((e for e in existing if e['event_id'] == event_id), None)
         if previous:
             if {k:v for k,v in previous.items() if k != 'timestamp'} != {k:v for k,v in label.items() if k != 'timestamp'}:
@@ -196,7 +220,7 @@ def make_server(app, port=43220, watch=False):
             self.send_header('Content-Length', str(len(body)))
             self.send_header('Cache-Control', 'no-store')
             self.send_header('X-Content-Type-Options', 'nosniff')
-            self.send_header('Content-Security-Policy', "default-src 'self'; img-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'")
+            self.send_header('Content-Security-Policy', "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'")
             self.end_headers()
             self.wfile.write(body)
 
@@ -215,10 +239,11 @@ def make_server(app, port=43220, watch=False):
                 file = Path(asset['path'])
                 if file.suffix.lower() not in ('.png', '.jpg', '.jpeg', '.webp') or not file.is_file():
                     return self.respond(404, {'error': 'Missing image'})
-                pixels = file.read_bytes()
-                if hashlib.sha256(pixels).hexdigest() != asset.get('sha256'):
-                    return self.respond(409, {'error': 'Image changed; wait for a source-bound lane refresh'})
-                return self.respond(200, pixels, mimetypes.guess_type(file.name)[0] or 'image/png')
+                try:
+                    pixels, kind = asset_content(asset)
+                except ValueError as exc:
+                    return self.respond(409, {'error': str(exc)})
+                return self.respond(200, pixels, kind)
             files = {'/': 'owner-rating.html', '/app.js': 'owner-rating.js', '/app.css': 'owner-rating.css'}
             if path in files:
                 file = Path(__file__).with_name(files[path])
@@ -253,10 +278,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--data', type=Path, default=ml.DEFAULT_DATA)
     parser.add_argument('--port', type=int, default=43220)
+    parser.add_argument('--no-watch', dest='watch', action='store_false', help='Serve the existing catalog without polling producer lanes')
     args = parser.parse_args()
     app = RatingApp(args.data)
-    server = make_server(app, args.port, watch=True)
-    app.poll()
+    app.poll_status['active'] = args.watch
+    server = make_server(app, args.port, watch=args.watch)
+    if args.watch:
+        app.poll()
     print(json.dumps({'url': f'http://127.0.0.1:{server.server_port}/', 'pid': os.getpid()}), flush=True)
     try:
         server.serve_forever()

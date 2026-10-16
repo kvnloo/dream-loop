@@ -5,7 +5,8 @@ import copy
 import json
 from pathlib import Path
 import re
-from PIL import Image
+import os
+from catalog import Catalog, image_size
 import meta_loop as ml
 
 LANES = ('stone-mosaic', 'optics', 'banner-greenery')
@@ -49,10 +50,8 @@ def render_metadata(row, path):
 
 
 def build_catalog(data, catalog, rows):
-    # Lazy import avoids the seed helper's atomic_json import cycle.
-    from seed_owner_rating import Catalog
     data = Path(data)
-    night = data.parent/'night-v2'
+    night = Path(os.environ.get('OWNER_REVIEW_ARTIFACTS') or data.parent/'night-v2').expanduser()
     result = copy.deepcopy(catalog)
     builder = Catalog(data)
     builder.assets.update(result['assets'])
@@ -60,8 +59,7 @@ def build_catalog(data, catalog, rows):
     if not target_receipt.is_file():
         return result
     target = Path(json.loads(target_receipt.read_text())['target'])
-    with Image.open(target) as image:
-        target_size = list(image.size)
+    target_size = image_size(target)
     look_path = night/'optics/LOOK.json'
     result['look_settings'] = dict(path=str(look_path), sha256=ml.digest(look_path),
         **json.loads(look_path.read_text())) if look_path.exists() else None
@@ -86,8 +84,7 @@ def build_catalog(data, catalog, rows):
         if row['lane'] == 'optics' and row.get('metrics', {}).get('mode') == 'CLEAR':
             for a in row['artifacts']:
                 if verified(a):
-                    with Image.open(a['path']) as image:
-                        clear_controls[tuple(image.size)] = (a, row)
+                    clear_controls[tuple(image_size(a['path']))] = (a, row)
 
     for row in rows:
         lane = row['lane']
@@ -99,8 +96,7 @@ def build_catalog(data, catalog, rows):
         if lane == 'optics' and row.get('metrics', {}).get('mode') == 'LOOK':
             for a in row['artifacts']:
                 if verified(a):
-                    with Image.open(a['path']) as image:
-                        control = clear_controls.get(tuple(image.size))
+                    control = clear_controls.get(tuple(image_size(a['path'])))
                     if control and row['metrics'].get('source_sha256') == control[1]['metrics'].get('source_sha256'):
                         artifacts.append(control[0])
         for artifact in artifacts:
@@ -131,8 +127,7 @@ def build_catalog(data, catalog, rows):
                 continue
             if not box:
                 box = [0, 0, *master]
-            with Image.open(path) as image:
-                size = list(image.size)
+            size = image_size(path)
             if size != [box[2]-box[0], box[3]-box[1]]:
                 warnings.append(row['trial_id']+': crop geometry mismatch '+str(path))
                 continue
