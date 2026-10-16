@@ -182,13 +182,13 @@ class IntegrationTests(unittest.TestCase):
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0]['mechanism_class'], 'traced_vector')
 
-    def test_next_fails_closed_on_invalid_ledger(self):
+    def test_next_fails_closed_on_invalid_owner_ledger(self):
         import subprocess
         import sys
         with tempfile.TemporaryDirectory() as folder:
             root = pathlib.Path(folder)
             (root/'events').mkdir()
-            (root/'events/bad.jsonl').write_text('{broken}\n')
+            (root/'events/owner.jsonl').write_text('{broken}\n')
             result = subprocess.run([sys.executable, str(m.ROOT/'scripts/meta_loop.py'), '--data', str(root),
                                      'next', '--element', 'sample-panel'], capture_output=True, text=True)
             self.assertEqual(result.returncode, 2)

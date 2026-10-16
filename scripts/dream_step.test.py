@@ -43,7 +43,7 @@ class DreamTests(unittest.TestCase):
         result = m.dream(rows, 'sample-base', {})
         self.assertTrue(any(d['mechanism_class']=='geometry' for d in result['reserved_directions']))
 
-    def test_publisher_blocks_dreams_when_any_lane_is_invalid(self):
+    def test_publisher_blocks_dreams_on_unclassified_integrity_errors(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             rows = [trial(i, owner_reaction={'status':'rejected','receipt':f'test:{i}'}) for i in (1,2)]
@@ -103,7 +103,7 @@ class DreamTests(unittest.TestCase):
             self.assertFalse((root/'ledger.json').exists(), 'read-only commands must not race the rating materializer')
             result = cli('dream', '--element', '../missing')
             self.assertEqual(result.returncode, 2)
-            (root/'events/broken.jsonl').write_text('{broken}\n')
+            (root/'events/owner.jsonl').write_text('{broken}\n')
             for args in [('stuck',), ('dream', '--element', 'sample-base'), ('next', '--element', 'sample-base')]:
                 self.assertEqual(cli(*args).returncode, 2)
 

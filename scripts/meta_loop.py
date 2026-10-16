@@ -41,8 +41,8 @@ def json_text(value):
     return json.dumps(value, sort_keys=True, allow_nan=False)
 
 
-def read_jsonl(path):
-    """Do not consume an incomplete final write; all other bad lines are errors."""
+def read_jsonl(path, *, with_locations=False):
+    """Defer incomplete writes; retain physical line numbers after skipped rows."""
     if not Path(path).exists():
         return [], []
     data = Path(path).read_bytes()
@@ -52,7 +52,10 @@ def read_jsonl(path):
             errors.append(f'{path}:{n}: incomplete final line deferred')
             continue
         try:
-            rows.append(json.loads(line))
+            row = json.loads(line)
+            if not isinstance(row, dict):
+                raise ValueError('record must be a JSON object')
+            rows.append((n, row) if with_locations else row)
         except (ValueError, UnicodeDecodeError) as e:
             errors.append(f'{path}:{n}: {e}')
     return rows, errors
@@ -88,10 +91,10 @@ def validate_trial(row):
     json_text(row)
 
 
-def materialize(events):
+def materialize(events, locations=None):
     """Revision order is append order within one lane, not guessed timestamps."""
     ids, trials, errors, owners = {}, {}, [], {}
-    for row in events:
+    for index, row in enumerate(events):
         try:
             validate_trial(row)
             event_id, trial_id = row['event_id'], row['trial_id']
@@ -122,7 +125,8 @@ def materialize(events):
                         materialized[history_key] = history
             trials[trial_id] = materialized
         except (ValueError, TypeError, KeyError) as e:
-            errors.append(str(e))
+            location = locations[index] if locations is not None else 'event '+str(index+1)
+            errors.append('producer record skipped: '+location+': '+str(e))
     # Keep unresolved external parents, but quarantine cycles and descendants.
     bad, visiting, visited = set(), set(), set()
     def visit(node):
@@ -141,7 +145,7 @@ def materialize(events):
     for node in trials:
         visit(node)
     if bad:
-        errors.append('parent cycle quarantined: '+', '.join(sorted(bad)))
+        errors.append('producer record skipped: parent cycle quarantined: '+', '.join(sorted(bad)))
     return [r for key, r in trials.items() if key not in bad], errors
 
 
@@ -626,13 +630,14 @@ def ingest(data, evals=None, *, persist=True):
                     ids.add(row['event_id'])
         write_json(data/'owner-anchors.json', anchors)
         write_json(data/'report-sources.json', reports)
-    events, errors, superseded, labels = [], [], [], []
+    events, errors, superseded, labels, locations = [], [], [], [], []
     for path in sorted((data/'events').glob('*.jsonl')):
-        rows, issues = read_jsonl(path)
+        located_rows, issues = read_jsonl(path, with_locations=True)
         if path.name == 'owner.jsonl':
-            labels.extend(rows)
+            labels.extend(row for _, row in located_rows)
             errors.extend(issues)
             continue
+        rows = [row for _, row in located_rows]
         native_ids = set()
         for row in rows:
             if row.get('event') == 'meta_trial':
@@ -641,17 +646,19 @@ def ingest(data, evals=None, *, persist=True):
                     native_ids.add(row['trial_id'])
                 except ValueError:
                     pass
-        for line, row in enumerate(rows, 1):
-            if row.get('event') != 'meta_trial' and row.get('trial_id') in native_ids:
+        for line, row in located_rows:
+            if (row.get('event') != 'meta_trial' and isinstance(row.get('trial_id'), str)
+                    and row['trial_id'] in native_ids):
                 superseded.append(dict(path=str(path), line=line, trial_id=row['trial_id'],
                                        reason='formal native event supersedes partial legacy intake', raw=row))
                 continue
             try:
                 events.append(adapt_lane(row, path, line))
+                locations.append(f'{path}:{line}')
             except (ValueError, KeyError, TypeError) as exc:
-                errors.append(f'{path}:{line}: {exc}')
-        errors.extend(issues)
-    trials, issues = materialize(events)
+                errors.append(f'producer record skipped: {path}:{line}: {exc}')
+        errors.extend('producer record skipped: '+issue for issue in issues)
+    trials, issues = materialize(events, locations)
     errors.extend(issues)
     trials, issues = apply_owner_labels(trials, labels, data/'events/owner.jsonl')
     if persist:
@@ -714,9 +721,12 @@ def publish_materialized(data, rows, errors):
     recipes = recipe_index(rows, calibrations, data, integrity_ok=not errors)
     elements = sorted(set(r['element'] for r in rows) | set(owner_evidence['element_only']) | set(setting('DEFAULT_ELEMENTS', ())))
     plans = {element: plan(rows, element, calibrations) for element in elements}
-    if errors:
-        for value in plans.values():
-            value.update(batch=[], dream=None, blocked='Ledger incomplete/invalid; repair before dispatch', errors=errors)
+    blocking = [error for error in errors if not error.startswith('producer record skipped: ')]
+    for value in plans.values():
+        if errors:
+            value['ingestion_warnings'] = errors
+        if blocking:
+            value.update(batch=[], dream=None, blocked='Ledger incomplete/invalid; repair before dispatch', errors=blocking)
     for element, value in plans.items():
         safe = ''.join(c if c.isalnum() or c in '-_' else '_' for c in element)
         write_json(data/('next-'+safe+'.json'), value)
@@ -853,8 +863,9 @@ def main():
         rows, errors = ingest(args.data, persist=False)
         if before != archive_snapshot(args.data):
             errors.append('Archive changed during read; retry for a coherent snapshot')
-        if errors:
-            parser.exit(2, 'Ledger incomplete/invalid; repair before dispatch: '+json.dumps(errors)+'\n')
+        blocking = [error for error in errors if not error.startswith('producer record skipped: ')]
+        if blocking:
+            parser.exit(2, 'Ledger incomplete/invalid; repair before dispatch: '+json.dumps(blocking)+'\n')
         path = args.data/'calibration.json'
         registry = json.loads(path.read_text()).get('registry', {}) if path.exists() else {}
         try:
@@ -864,9 +875,13 @@ def main():
                 result = dream(rows, args.element, registry, args.defect)
                 result['archive'] = before
                 result['generated_at'] = now()
-                publish_portfolio(args.data, result)
             else:
                 result = plan(rows, args.element, registry, args.exploration_slots)
+            if errors:
+                result['ingestion_warnings'] = errors
+                print('Skipped invalid producer records: '+json.dumps(errors), file=sys.stderr)
+            if args.command == 'dream':
+                publish_portfolio(args.data, result)
             print(json.dumps(result, indent=2))
         except ValueError as exc:
             parser.exit(2, str(exc)+'\n')

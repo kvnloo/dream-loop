@@ -29,6 +29,24 @@ A recipe is promoted only with owner approval OR qualified calibrated judge cand
 
 From the repository root, run `python scripts/meta_loop.py --data "$OWNER_REVIEW_DATA" ingest` and `... report`; `... next --element sample-panel` reads current files. Polling is read-only with respect to lane artifacts. Runner owns only meta-loop output; lanes own their own JSONL.
 
+## Invalid producer records and repair
+
+The planner skips malformed, incomplete or schema-invalid producer records and
+reports their lane path and physical line number as `ingestion_warnings` in CLI
+JSON (and stderr), saved plans and the HTML report. Valid records from the same
+lane and other lanes remain available. An incomplete tail is deferred, never
+rewritten. Original records are not edited or silently normalized by ingestion.
+
+Repair with a new revision event, preserving trial identity and the original
+receipt in `source`. Use null for missing measurements. Keep unstructured judge
+notes as source evidence, not invented preference/protocol/calibration labels.
+If a newer valid revision exists, do not resurrect the older failed state.
+Historical invalid rows remain visible diagnostics after append-only repair.
+
+Owner-log errors and a changing archive snapshot still fail closed. Recipe
+qualification remains blocked while integrity diagnostics exist; a runnable
+planning command is not promotion or evidence completeness.
+
 ## Owner UI labels (append-only overlay)
 
 `events/owner.jsonl` is reserved for the local owner-rating server. A label does not

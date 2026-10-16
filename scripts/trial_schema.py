@@ -39,8 +39,9 @@ def validate(value, schema, documents, document, location='$'):
     if 'enum' in schema and not any(type(value) is type(v) and value == v for v in schema['enum']):
         raise ValueError(location+': invalid enum')
     if isinstance(value, dict):
-        if any(key not in value for key in schema.get('required', [])):
-            raise ValueError(location+': missing required field')
+        missing = [key for key in schema.get('required', []) if key not in value]
+        if missing:
+            raise ValueError(location+': missing required field: '+', '.join(missing))
         properties = schema.get('properties', {})
         if schema.get('additionalProperties') is False and set(value)-properties.keys():
             raise ValueError(location+': unexpected field')
