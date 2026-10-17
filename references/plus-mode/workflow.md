@@ -1,5 +1,7 @@
 # Dream Loop Plus Workflow
 
+> **V2 compatibility record.** [The v2 core](../../SKILL.md) is authoritative. This opt-in historical recipe preserves asset manifests, capture/performance receipts, gated rubrics and quota brakes; it is not a second default. Owner-approved style and COPY/INTENT, explicit asset/service permissions, calibrated blind critics, per-batch owner checkpoints and the two-failed-trial dispatch guard override contrary advice below. Historical model/subscription names, prices and fixed time/quota limits are examples, not current availability or permission. Never infer consent to upload/spend from a configured key, bypass a no-download preference, replace a target, prohibit an approved style/Blender method, or declare done on a score alone. Do not combine Classic, Pro and Plus orchestration in one run.
+
 ## Note on orchestrator model
 
 This workflow is designed not to be run by very large models like GPT-6 Astra or Claude Fable. If you are such a model, stop, and ask the user to switch to a smaller model (e.g. GPT-5.6 Luna on xhigh reasoning, or Claude Sonnet/Opus). Only proceed if they insist.

@@ -1,5 +1,7 @@
 # Optional stage: tiled mesh maps (Star Wars / Jedi method)
 
+V2 requires owner-authorized texture generation, [final-density evidence](fidelity-and-style.md), and actual mesh baking. Historical case names and external script paths below are provenance, not bundled dependencies or a reproduced v2 benchmark. Read the [grid helper limitations](compatibility.md#tiled-map-compatibility-limits) before running; generated maps are inferred, not measured PBR.
+
 Not a scene stage. Do not run this on a full hero still or to invent a new target.
 
 Use when a **single mesh** needs fabric, hair, skin pores, chainmail, court grain, CMU mortar, or other microtexture that a 1k atlas cannot hold. Proven on Temple Guard: split source into an N×N grid with overlap, restore each tile at higher res (ComfyUI ControlNet-tile / Flux denoise ~0.18), stitch, bake onto the mesh.

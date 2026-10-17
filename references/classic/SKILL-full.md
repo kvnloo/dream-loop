@@ -6,6 +6,8 @@ license: MIT
 
 # dream-loop
 
+> **V2 compatibility record.** [The v2 core](../../SKILL.md) is authoritative. This opt-in historical recipe preserves asset manifests, capture/performance receipts, gated rubrics and quota brakes; it is not a second default. Owner-approved style and COPY/INTENT, explicit asset/service permissions, calibrated blind critics, per-batch owner checkpoints and the two-failed-trial dispatch guard override contrary advice below. Historical model/subscription names, prices and fixed time/quota limits are examples, not current availability or permission. Never infer consent to upload/spend from a configured key, bypass a no-download preference, replace a target, prohibit an approved style/Blender method, or declare done on a score alone. Do not combine Classic, Pro and Plus orchestration in one run.
+
 This is a process for you to autonomously build extremely impressive visuals, especially for 3D scenes (e.g. in a game or app). Your goal is to produce the most visually stunning result while hitting acceptable frame rate for the target platform (e.g. 60 fps for a browser game, 120 fps for modern mobile devices).
 
 Own the complete visual environment: its spatial structure, surface variation, surrounding visual mass, and depth must support the focal subjects. Infer the needed coverage and level of detail from the concept and the user's camera controls. A collection of finished hero assets does not establish that the environment is complete.
@@ -26,7 +28,7 @@ Put working context/files in `.dream-loop` and gitignore this file (unless told 
 
 ## "Dream Loop Plus" Mode
 
-The original Dream Loop (or "Dream Loop Pro") is designed for high-tier subscriptions like ChatGPT Pro. If the user is on a lower tier (e.g. ChatGPT Plus), you should instead use the configuraiton described in [references/plus-mode.md](references/plus-mode.md).
+The original Dream Loop (or "Dream Loop Pro") is designed for high-tier subscriptions like ChatGPT Pro. If the user is on a lower tier (e.g. ChatGPT Plus), you should instead use the configuraiton described in [references/plus-mode.md](plus-mode.md).
 
 If the user does not specify which Dream Loop mode to use, you must first infer it by checking their subscription tier, then inform them of which mode you're using before proceeding.
 
@@ -34,7 +36,7 @@ This does not change your goal, which is to produce the most impressive and comp
 
 ## Concept art
 
-Before creating or revising concept art, read [references/concept.md](references/concept.md). This also covers follow-up loops for an existing product.
+Before creating or revising concept art, read [references/concept.md](concept.md). This also covers follow-up loops for an existing product.
 
 ## Time budget
 
@@ -46,17 +48,17 @@ If the user doesn't give a time budget, run until you hit an exit criterion, but
 
 ## How to get 3D Assets
 
-Before implementing any 3D scene, read [references/assets-3d.md](references/assets-3d.md). Plan the complete visible asset kit from the concept, generate independent assets in parallel, and resolve every required model and texture before composing the scene. Record asset jobs, local files, validation, and blockers in `.dream-loop/assets.json`. A submitted job or one successful asset does not pass this gate. Do not add procedural fallbacks, follow the linked doc.
+Before implementing any 3D scene, read [references/assets-3d.md](assets-3d.md). Plan the complete visible asset kit from the concept, generate independent assets in parallel, and resolve every required model and texture before composing the scene. Record asset jobs, local files, validation, and blockers in `.dream-loop/assets.json`. A submitted job or one successful asset does not pass this gate. Do not add procedural fallbacks, follow the linked doc.
 
 The loop is: **plan assets → generate in parallel → validate assets → compose → polish → judge → repeat**. If feedback requires new or replacement assets, return to asset resolution before revising that part of the scene.
 
 ## Compose and self-review
 
-Do not read composition instructions or write scene-composition code while assets are unresolved. Finish the asset phase, including live asset previews and a manifest with passed validation for every required asset. Then read [references/compose.md](references/compose.md), compose the scene, and perform the selected mode's polish pass.
+Do not read composition instructions or write scene-composition code while assets are unresolved. Finish the asset phase, including live asset previews and a manifest with passed validation for every required asset. Then read [references/compose.md](compose.md), compose the scene, and perform the selected mode's polish pass.
 
 ## Judge
 
-When invoking the judge, give it [references/judge.md](references/judge.md) and the inputs specified there. Read that reference when preparing the submission or judging yourself.
+When invoking the judge, give it [references/judge.md](judge.md) and the inputs specified there. Read that reference when preparing the submission or judging yourself.
 
 ## Exit criteria
 
