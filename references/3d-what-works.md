@@ -21,6 +21,8 @@ BlenderAlchemy (ECCV 2024) is VLM **editing** a live scene. Closer to this loop 
 
 ## Materials
 
+For opt-in real-photo material grounding (camera/shape already gated), use [photo-material-grounding.md](photo-material-grounding.md): keep held-out views and lights separate from the generator, evaluate per-mesh PBR changes, and log accepted/rejected branches.
+
 1. Download or crop a seamless set. `scripts/polyhaven_pbr.py dirt --out .dream-loop/pbr --res 1k`. 1k is enough to gate; 2k/4k after composition holds. See [creative-3d.md](creative-3d.md).
 2. One Principled BSDF. Image textures: sRGB albedo, Non-Color normal/rough/disp.
 3. Displacement on the soil/ground mesh, scale ~0.001–0.003 object space, method BOTH. Not a pile of spheres.
