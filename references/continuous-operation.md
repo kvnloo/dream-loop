@@ -1,0 +1,11 @@
+# Run the dream loop continuously (unattended)
+
+Use when the owner asks to keep the loop running on a product repo instead of iterating round by round in chat.
+
+1. **Gate on a stable base.** Do not start rounds while the base branch is still being ported or merged; the driver waits on the port's `RESULT.json` `done` (or the base PR landing). Rounds on a moving base recreate the merge conflicts the loop should avoid.
+2. **One fresh worker per round; the ledger is the memory.** A single long agent session dies mid-run and loses state. Write a round contract `ROUND.md` (locked target hashes, base rules, one-change rule, gates, critic routing, ledger row format, `RESULT.json` schema) and an append-only `LEDGER.md` that carries the defect guard. Each round runs `ROUND=rNN timeout 7200 fx ask --full-access --model <worker> --json < ROUND.md` in the lane worktree.
+3. **Driver as a user service, not a chat background job:** `systemd-run --user --unit <product>-dreamloop -p WorkingDirectory=<run dir> -E PATH="$PATH" -E HOME=$HOME driver.sh`, so it survives the chat. Before each round it merges the partner's main (and the base branch) into the lane. A conflict aborts the merge, writes `FREEZE` and emits an event instead of building on top. It sleeps while a repo-wide freeze label or file exists, stops on a `STOP` file, and stops itself after 3 consecutive rounds with no `RESULT.json` (broken worker path; don't burn quota).
+4. **Events + hourly receipt.** The driver appends event lines to `driver.log`; the orchestrator runs `tail -n0 -F driver.log` in the background with notify patterns (round-end, batch-ready, conflict, worker-broken, stopped) plus an hourly loop tick for receipts (unattended work reports hourly).
+5. **Ship in batches.** Accepted rounds accumulate on the lane branch. Every 3 accepts the driver emits `batch-ready`; the orchestrator runs the milestone (Opus) panel and an owner phone checkpoint, then opens one small upstream PR and records the shipped count in `SHIPPED`.
+6. **Prefer new files over growing hot shell files** in each round's change, so loop commits don't collide with parallel lanes.
+7. Check the burn pace (`burn-pace --json`) before arming and route the worker to the lane that is under pace.

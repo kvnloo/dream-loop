@@ -67,6 +67,7 @@ Read [script contracts](references/scripts.md) before invoking new helpers. Run 
 
 ## Pitfalls
 
+- Never hand-type domain facts (counts, widths, totals, directions, arrows) into a generation prompt for a product UI target. Build the prompt from the product's own model and checks, lint it for domain common sense before generating, and fact-check every image against that same spec before any taste scoring; a factual miss rejects the image. Why: StreetIQ's prompt dropped one sidewalk and three rounds of references inherited wrong totals, a wrong-way turn arrow and a nonsense 'fits' claim (fix: `app/scripts/ref-spec.mjs`, `docs/design/REFERENCE-ERRATA.md`).
 - Do not reward gate-number decreases after PASS, extrapolate beauty from geometry counts, or hide regressions behind majority preference.
 - Do not call upscaled detail native, inferred maps measured PBR, projection relightable reconstruction, or tests owner acceptance.
 - Do not overwrite renders, share unowned global settings, drift from the approved fixture, or restart a failed worker before inspecting its saved artifacts.
