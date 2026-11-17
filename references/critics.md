@@ -25,6 +25,14 @@ Do not enlarge a small capture and call it native. Label alignment resizing and 
 7. Publish all tile scores, worst ten scored tiles, blocked list, worst-eight contact sheet, preserve list, ranked fixes and conflicts. Means/severity are overlapping diagnostics, not independent samples, confidence or a global scene score. Severity may be unique citing tiles × mean deficit, but recurrence is not perceptual importance.
 8. Adjudicate raw prescriptions against locks, actual scene probes, previous failures and owner's style reading. Keep raw tier votes separate from owner-adjudicated tiers. Retain contradictions: missing fine weathering is not excessive coarse splatter; optical defocus is not material smoothing; lighting/albedo guesses are not measured scene facts. End with source hashes unchanged and a viewer checkpoint.
 
+## Frontier design critic (open-ended "push the limits" review)
+
+When the owner wants a top model to critique a whole interactive product rather than rank A/B, build an evidence packet in an operations dir and run the critic read-only, one-shot:
+
+- Packet: owner asks verbatim (including past corrections that show his bar), owner taste profile + taste-skill motion/moments/effects/copy refs, this skill and the product's own skill paths, the scorer rubric/ROUNDS (so it doesn't re-propose reset mechanisms), frame-by-frame filmstrips with haptic logs (slowed clock), static shots at every phone width, and a LOCAL server it may drive (never prod when visits write shared counters).
+- Prompt for first principles about the medium and meaning-before-motion, then demand deliverables a climb can execute: thesis + biggest gap, per-motion verdict citing filmstrip frames, a haptic grammar (not tweaks), measured micro-interaction problems, bold ideas each with mechanism, cost and a script-assertable acceptance check, new rubric cases/critic layers with judge questions, and an ordered one-change-per-round plan. Taste without a mechanism and a check is unusable.
+- Run (Fable 5.2 via Hermes): `cd <ops dir> && hermes -p fablelab3 chat --query-file PROMPT.md --oneshot -Q -m claude-fable-5-2 --provider claude-subscription-directsdk-experimental --reasoning high > REPORT.md 2> err` as a background job with notify. Verify its claims against the app before turning the plan into rounds.
+
 ## Panel and multi-scale review
 
 At milestones use fresh senior-art-director, lookdev-supervisor and phone-viewer framings. Each sees whole-frame evidence and bounded native details, classifies elements as PERFECT / MOSTLY GOOD / NEEDS WORK, states first-glance tells and ranks impact per effort. Same model three times is not three independent experts. Mark owner-approved locks as KEEP/LOCK in adjudicated output while retaining honest raw votes. Use a trajectory sheet of matched crops to expose persistent defects, not a graph of incomparable numeric scores.
