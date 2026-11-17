@@ -1,5 +1,7 @@
 # Hard gates (Helios process, no product names)
 
+> **V2 compatibility record.** Read SKILL.md and references/loop-and-gates.md at the skill root first. Current owner preferences, COPY/INTENT, three separate gates and batch checkpoints override historical literal-match, model-ranking and score-only promotion advice below. Legacy Pro/Plus are opt-in, mutually exclusive orchestration recipes; external uploads/spending still require authorization. Historical rules remain for reproducibility, not as a competing v2 policy.
+
 These gate lighting/materials judging, not camera or massing action. Overlay + crop_gate before shaders. One locked frame, one camera, one capture.
 
 `crop_gate.py` is an edge-residual heuristic, not a vanishing-line detector. Inspect the overlay even on PASS; texture and contrast changes can affect the metric. It resizes the capture to the target dimensions, so supply the same aspect ratio rather than relying on stretching. Python 3.10+ and Pillow are required (`python -m pip install Pillow`).

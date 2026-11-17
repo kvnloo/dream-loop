@@ -1,3 +1,6 @@
 .dream-loop/
 *.sqlite
 *.sqlite3
+__pycache__/
+*.py[cod]
+.venv/

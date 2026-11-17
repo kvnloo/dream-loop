@@ -1,5 +1,7 @@
 # Creative 3D skills that earned a seat
 
+> **V2 compatibility record.** Read SKILL.md and references/loop-and-gates.md at the skill root first. Current owner preferences, COPY/INTENT, three separate gates and batch checkpoints override historical literal-match, model-ranking and score-only promotion advice below. Legacy Pro/Plus are opt-in, mutually exclusive orchestration recipes; external uploads/spending still require authorization. Historical rules remain for reproducibility, not as a competing v2 policy.
+
 Upstream clones (arjun988 / kevinbadi blender-skills) live in the agent profile. **Only the rules below belong in this repo.** Do not vendor Meshy, Fal, or MCP-only CLIs for private stills.
 
 ## In (moved the judge)

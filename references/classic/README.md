@@ -1,8 +1,10 @@
 # Classic workflow (pre–Sep 2026 simplify)
 
+> **V2 compatibility record.** [The v2 core](../../SKILL.md) is authoritative. This opt-in historical recipe preserves asset manifests, capture/performance receipts, gated rubrics and quota brakes; it is not a second default. Owner-approved style and COPY/INTENT, explicit asset/service permissions, calibrated blind critics, per-batch owner checkpoints and the two-failed-trial dispatch guard override contrary advice below. Historical model/subscription names, prices and fixed time/quota limits are examples, not current availability or permission. Never infer consent to upload/spend from a configured key, bypass a no-download preference, replace a target, prohibit an approved style/Blender method, or declare done on a score alone. Do not combine Classic, Pro and Plus orchestration in one run.
+
 Anshu removed this stack in commit `9bddb90` (“simplify Plus workflow… cheaper”). It is **restored here as an optional path** for forks that want the stricter loop: gated judge, concept QA, asset-first gate, compose protocol, Plus quota brakes, and `assets.json` schema.
 
-**Default remains** the current split: [plus-mode/workflow.md](../plus-mode/workflow.md) and [pro-mode/workflow.md](../pro-mode/workflow.md). Do not load classic and current Plus/Pro workflows in the same run.
+**Historical split (not the v2 default):** [plus-mode/workflow.md](../plus-mode/workflow.md) and [pro-mode/workflow.md](../pro-mode/workflow.md). Do not load classic and current Plus/Pro workflows in the same run.
 
 ## When to use classic
 

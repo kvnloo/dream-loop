@@ -1,5 +1,7 @@
 # Lessons: camera-projected character textures and stone
 
+> **V2 compatibility record.** Read SKILL.md and references/loop-and-gates.md at the skill root first. Current owner preferences, COPY/INTENT, three separate gates and batch checkpoints override historical literal-match, model-ranking and score-only promotion advice below. Legacy Pro/Plus are opt-in, mutually exclusive orchestration recipes; external uploads/spending still require authorization. Historical rules remain for reproducibility, not as a competing v2 policy.
+
 Rules distilled from a character-plus-set lookdev run. Same format as [3d-what-works.md](3d-what-works.md): one imperative rule + why. No round numbers, no product scores.
 
 ## Targets

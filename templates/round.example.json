@@ -1,0 +1,105 @@
+{
+  "event": "discovery_observation",
+  "schema_version": 2,
+  "observation_id": "EXAMPLE-only",
+  "run_id": "EXAMPLE-run",
+  "node_id": "EXAMPLE-node",
+  "timestamp": "2000-01-01T00:00:00Z",
+  "primary_parent": null,
+  "dependency_ids": [],
+  "cohort": {
+    "target_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "brief_revision": "EXAMPLE",
+    "preferences_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "fixture_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "capture_contract_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "judge_protocol_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "gate_version": "EXAMPLE"
+  },
+  "predecision": {
+    "observed_ids": [],
+    "eligible_actions": [],
+    "policy_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "context_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "hypothesis": {
+    "defect_id": "EXAMPLE-dial",
+    "family_id": "EXAMPLE-layered-coat",
+    "prediction": "Synthetic template: reflected card becomes visible",
+    "change_class": "material"
+  },
+  "intervention": {
+    "intended": "EXAMPLE only",
+    "realized": "Not executed",
+    "exercised": "no",
+    "evidence": []
+  },
+  "artifacts": [],
+  "outcomes": {
+    "technical": "unknown",
+    "evidence_complete": false,
+    "brief": "unknown",
+    "pairwise_preference": "unknown",
+    "owner": "not_reviewed",
+    "selection": "unknown",
+    "failure_class": "unknown"
+  },
+  "directives": [],
+  "owner_labels": [],
+  "cost": {
+    "api_usd": {
+      "value": null,
+      "status": "unknown"
+    },
+    "gpu_seconds": {
+      "value": null,
+      "status": "unknown"
+    },
+    "cpu_seconds": {
+      "value": null,
+      "status": "unknown"
+    },
+    "elapsed_seconds": {
+      "value": null,
+      "status": "unknown"
+    },
+    "queue_seconds": {
+      "value": null,
+      "status": "unknown"
+    },
+    "owner_seconds": {
+      "value": null,
+      "status": "unknown"
+    },
+    "builder_calls": {
+      "value": null,
+      "status": "unknown"
+    },
+    "critic_calls": {
+      "value": null,
+      "status": "unknown"
+    },
+    "policy_calls": {
+      "value": null,
+      "status": "unknown"
+    },
+    "input_tokens": {
+      "value": null,
+      "status": "unknown"
+    },
+    "output_tokens": {
+      "value": null,
+      "status": "unknown"
+    },
+    "cached_tokens": {
+      "value": null,
+      "status": "unknown"
+    }
+  },
+  "replay": {
+    "support": "unsupported",
+    "reason": "Synthetic documentation example; no actual result",
+    "dependencies_verified": false,
+    "reveal_after": []
+  }
+}

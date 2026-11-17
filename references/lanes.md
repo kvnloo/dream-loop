@@ -1,5 +1,7 @@
 # Same skills, different products
 
+> **V2 compatibility record.** Read SKILL.md and references/loop-and-gates.md at the skill root first. Current owner preferences, COPY/INTENT, three separate gates and batch checkpoints override historical literal-match, model-ranking and score-only promotion advice below. Legacy Pro/Plus are opt-in, mutually exclusive orchestration recipes; external uploads/spending still require authorization. Historical rules remain for reproducibility, not as a competing v2 policy.
+
 dream-loop is a **skill pack**. Helio-cortex, Rally House, and GrowTwin are **different products**. They do not share git, stills, cameras, or a status bus.
 
 What they share: this repo’s loop (lock target → overlay → crop_gate **skips lighting if fail** → independent judge → one change class → stall), `scripts/overlay.py`, `scripts/crop_gate.py`, [hard-gates.md](hard-gates.md), optional `scripts/tile_grid.py`, and [3d-what-works.md](3d-what-works.md) (process, not product scores).

@@ -61,8 +61,8 @@ DISAGREE_FAIL = 0.18
 
 def _load_crop_gate():
     """Import the skill's crop_gate.py unchanged (for _fit and _edges)."""
-    skill = Path(os.environ.get("DREAM_LOOP_SKILL", "/workspace/dream-loop"))
     here = Path(__file__).resolve().parent
+    skill = Path(os.environ.get("DREAM_LOOP_SKILL", str(here.parent)))
     for p in (here / "crop_gate.py", skill / "scripts" / "crop_gate.py"):
         if p.exists():
             spec = importlib.util.spec_from_file_location("crop_gate", p)
@@ -142,8 +142,11 @@ def _long(b: np.ndarray, min_len: int) -> np.ndarray:
 def _worst_tile(un: np.ndarray, t: int) -> tuple[int, tuple[int, int]]:
     s = max(1, t // 2)
     best = (0, (0, 0))
-    for y in range(0, max(1, un.shape[0] - t + 1), s):
-        for x in range(0, max(1, un.shape[1] - t + 1), s):
+    # Include the final edge-aligned window when stride does not divide size.
+    ys = sorted(set(range(0, max(1, un.shape[0] - t + 1), s)) | {max(0, un.shape[0] - t)})
+    xs = sorted(set(range(0, max(1, un.shape[1] - t + 1), s)) | {max(0, un.shape[1] - t)})
+    for y in ys:
+        for x in xs:
             n = int(un[y:y + t, x:x + t].sum())
             if n > best[0]:
                 best = (n, (x, y))

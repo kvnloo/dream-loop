@@ -1,0 +1,14 @@
+{
+  "example-variant": {
+    "artifact": "rounds/r000/artifact.ext",
+    "capture": "rounds/r000/capture.png",
+    "round": "r000",
+    "status": "working-preview",
+    "owner_approval": null,
+    "approved_fixture": null,
+    "target_revision": "target-v1",
+    "brief_revision": "brief-v1",
+    "sha256": {"artifact": null, "capture": null},
+    "notes": "Template only; replace paths/hashes. Selection is not approval."
+  }
+}
